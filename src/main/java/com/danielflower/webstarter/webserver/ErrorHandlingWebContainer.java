@@ -27,8 +27,9 @@ public class ErrorHandlingWebContainer implements Container {
                 writeErrorToClient(resp, 404, "404 Not Found", "Sorry, could not find " + rnfe.getRequestedTarget());
             }
         } catch (Exception e) {
-            log.error("Unhandled exception for " + req.getTarget(), e);
-            String message = "Oops, an error occurred, sorry about that.  Technical details for the geeks: " + e;
+            Throwable cause = (e.getCause() == null) ? e : e.getCause();
+            log.error("Unhandled exception for " + req.getTarget(), cause);
+            String message = "Oops, an error occurred, sorry about that.  Technical details for the geeks: " + cause;
             writeErrorToClient(resp, 500, "500 Internal Error", message);
         }
     }

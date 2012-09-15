@@ -1,5 +1,6 @@
 package com.danielflower.webstarter.webserver;
 
+import org.apache.commons.lang.UnhandledException;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.core.Container;
@@ -20,7 +21,7 @@ public class RequestRouter implements Container {
                     handler.handle(req, resp);
                     return;
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new UnhandledException(e);
                 }
             }
         }

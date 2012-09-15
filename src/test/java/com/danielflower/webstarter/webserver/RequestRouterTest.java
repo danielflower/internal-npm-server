@@ -1,5 +1,6 @@
 package com.danielflower.webstarter.webserver;
 
+import org.apache.commons.lang.UnhandledException;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -25,31 +26,50 @@ public class RequestRouterTest {
     @Before
     public void setup() {
         context.checking(new Expectations() {{
-            allowing(request).getPath(); will(returnValue(path));
-            allowing(path).getPath(); will(returnValue(requestedPath));
-            allowing(request).getTarget(); will(returnValue(requestedPath));
+            allowing(request).getPath();
+            will(returnValue(path));
+            allowing(path).getPath();
+            will(returnValue(requestedPath));
+            allowing(request).getTarget();
+            will(returnValue(requestedPath));
         }});
     }
 
     @Test
     public void dispatchesRequestsToTheHandlerThatCanHandleIt() throws Exception {
         context.checking(new Expectations() {{
-            exactly(2).of(unsupported).canHandle(requestedPath); will(returnValue(false));
-            oneOf(supported).canHandle(requestedPath); will(returnValue(true));
+            exactly(2).of(unsupported).canHandle(requestedPath);
+            will(returnValue(false));
+            oneOf(supported).canHandle(requestedPath);
+            will(returnValue(true));
             oneOf(supported).handle(request, response);
         }});
 
-        RequestRouter container = new RequestRouter(new RequestHandler[] { unsupported, unsupported, supported, supported });
+        RequestRouter container = new RequestRouter(new RequestHandler[]{unsupported, unsupported, supported, supported});
         container.handle(request, response);
     }
 
     @Test(expected = ResourceNotFoundException.class)
     public void whenNoMatchingHandlersFoundAResourceNotFoundExceptionIsThrown() throws Exception {
         context.checking(new Expectations() {{
-            exactly(2).of(unsupported).canHandle(requestedPath); will(returnValue(false));
+            exactly(2).of(unsupported).canHandle(requestedPath);
+            will(returnValue(false));
         }});
 
-        RequestRouter container = new RequestRouter(new RequestHandler[] { unsupported, unsupported });
+        RequestRouter container = new RequestRouter(new RequestHandler[]{unsupported, unsupported});
+        container.handle(request, response);
+    }
+
+    @Test(expected = UnhandledException.class)
+    public void unhandledExceptionsAreThrown() throws Exception {
+        final Exception exceptionThrownByHandler = new Exception("Some unhandled exception");
+        context.checking(new Expectations() {{
+            allowing(supported).canHandle(with(any(String.class))); will(returnValue(true));
+            allowing(supported).handle(with(any(Request.class)), with(any(Response.class)));
+            will(throwException(exceptionThrownByHandler));
+        }});
+
+        RequestRouter container = new RequestRouter(new RequestHandler[]{supported});
         container.handle(request, response);
     }
 }

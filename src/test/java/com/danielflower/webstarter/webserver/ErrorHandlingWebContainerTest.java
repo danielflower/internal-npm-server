@@ -1,6 +1,7 @@
 package com.danielflower.webstarter.webserver;
 
 import org.apache.commons.io.output.WriterOutputStream;
+import org.apache.commons.lang.UnhandledException;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -18,6 +19,7 @@ import java.io.StringWriter;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
@@ -62,9 +64,11 @@ public class ErrorHandlingWebContainerTest {
 
     @Test
     public void unhandledExceptionsAreTreatedAs500ServerErrors() throws Exception {
+        final RuntimeException originalException = new RuntimeException("Some random exception");
         context.checking(new Expectations() {{
             allowing(underlying).handle(request, response);
-            will(throwException(new RuntimeException("Some random exception")));
+
+            will(throwException(new UnhandledException("Not the original exception", originalException)));
 
             oneOf(response).setCode(500);
             oneOf(response).setText("500 Internal Error");
@@ -73,5 +77,6 @@ public class ErrorHandlingWebContainerTest {
         errorHandlingWebContainer.handle(request, response);
         assertThat(responseContent.toString(), containsString("Oops, an error occurred"));
         assertThat(responseContent.toString(), containsString("Some random exception"));
+        assertThat(responseContent.toString(), not(containsString("Not the original exception")));
     }
 }
