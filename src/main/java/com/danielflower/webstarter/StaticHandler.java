@@ -34,7 +34,6 @@ public class StaticHandler implements RequestHandler {
             long time = System.currentTimeMillis();
 
             resp.set("Content-Type", mimeType);
-            resp.set("Server", "UpVote/1.0");
             resp.setDate("Date", time);
             resp.setDate("Last-Modified", localFile.lastModified());
 
