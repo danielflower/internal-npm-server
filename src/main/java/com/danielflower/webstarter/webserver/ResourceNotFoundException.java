@@ -1,4 +1,4 @@
-package com.danielflower.webstarter;
+package com.danielflower.webstarter.webserver;
 
 public class ResourceNotFoundException extends RuntimeException {
 

@@ -1,5 +1,7 @@
-package com.danielflower.webstarter;
+package com.danielflower.webstarter.controllers;
 
+import com.danielflower.webstarter.webserver.ContentTypeGuesser;
+import com.danielflower.webstarter.webserver.RequestHandler;
 import org.apache.commons.io.IOUtils;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
@@ -19,6 +21,12 @@ public class StaticHandler implements RequestHandler {
         if (path.contains("..") || path.contains("~")) {
             return false;
         }
+
+        int queryIndex = path.indexOf('?');
+        if (queryIndex > -1) {
+            path = path.substring(0, queryIndex);
+        }
+
         File localFile = new File(webroot, path);
         return localFile.exists() && !localFile.isDirectory();
     }
@@ -30,21 +38,21 @@ public class StaticHandler implements RequestHandler {
 
         final File localFile = new File(webroot, path);
 
-            String mimeType = contentTypeGuesser.fromName(localFile.getName());
-            long time = System.currentTimeMillis();
+        String mimeType = contentTypeGuesser.fromName(localFile.getName());
+        long time = System.currentTimeMillis();
 
-            resp.set("Content-Type", mimeType);
-            resp.setDate("Date", time);
-            resp.setDate("Last-Modified", localFile.lastModified());
+        resp.set("Content-Type", mimeType);
+        resp.setDate("Date", time);
+        resp.setDate("Last-Modified", localFile.lastModified());
 
-            OutputStream out = resp.getOutputStream();
+        OutputStream out = resp.getOutputStream();
 
-            InputStream in = new FileInputStream(localFile);
-            IOUtils.copy(in, out);
-            in.close();
+        InputStream in = new FileInputStream(localFile);
+        IOUtils.copy(in, out);
+        in.close();
 
-            out.flush();
-            out.close();
+        out.flush();
+        out.close();
 
     }
 }

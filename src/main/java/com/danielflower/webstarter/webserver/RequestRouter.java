@@ -1,4 +1,4 @@
-package com.danielflower.webstarter;
+package com.danielflower.webstarter.webserver;
 
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;

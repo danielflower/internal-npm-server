@@ -1,4 +1,4 @@
-package com.danielflower.webstarter;
+package com.danielflower.webstarter.webserver;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.jmock.Expectations;

@@ -1,4 +1,4 @@
-package com.danielflower.webstarter;
+package com.danielflower.webstarter.controllers;
 
 import org.junit.Test;
 
@@ -23,6 +23,11 @@ public class StaticHandlerTest {
     @Test
     public void anyPathRelativeToTheWebRootFolderCanBeHandled() throws Exception {
         assertThat(staticHandler.canHandle("/favicon.ico"), is(true));
+    }
+
+    @Test
+    public void queryStringsAreIgnoredWhenDeterminingExistence() throws Exception {
+        assertThat(staticHandler.canHandle("/favicon.ico?true=dat"), is(true));
     }
 
     @Test

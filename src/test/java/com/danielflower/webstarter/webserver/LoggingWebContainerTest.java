@@ -1,4 +1,4 @@
-package org.simpleframework.http.core;
+package com.danielflower.webstarter.webserver;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
+import org.simpleframework.http.core.Container;
 
 import java.io.IOException;
 

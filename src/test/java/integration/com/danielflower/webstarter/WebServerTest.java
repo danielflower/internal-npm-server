@@ -1,5 +1,6 @@
-package com.danielflower.webstarter;
+package integration.com.danielflower.webstarter;
 
+import com.danielflower.webstarter.webserver.WebServer;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -11,13 +12,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class AppTest {
+public class WebServerTest {
 
     private final int port = 54321;
 
     @Test
     public void serverCanBeStartedAndStoppedMultipleTimes() throws Exception {
-        App app = new App(App.createLoggingErrorHandlingRoutingContainer(), port);
+        WebServer app = new WebServer(WebServer.createLoggingErrorHandlingRoutingContainer(), port);
 
         assertRequestsCannotBeMade();
 
