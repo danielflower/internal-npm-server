@@ -29,6 +29,7 @@ public class NonCachableHttpViewRenderer implements HttpViewRenderer {
 
         Writer writer = new OutputStreamWriter(response.getOutputStream());
         viewRenderer.render(viewName, model, writer);
+		writer.close();
         response.close();
     }
 }
