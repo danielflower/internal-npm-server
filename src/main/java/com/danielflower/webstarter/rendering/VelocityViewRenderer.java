@@ -18,6 +18,7 @@ public class VelocityViewRenderer implements ViewRenderer {
         velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, Slf4jLogChute.class.getCanonicalName());
         velocityEngine.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
         velocityEngine.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER + ".class", ClasspathResourceLoader.class.getCanonicalName());
+		velocityEngine.setProperty(VelocityEngine.RUNTIME_REFERENCES_STRICT, true);
         velocityEngine.init();
     }
 

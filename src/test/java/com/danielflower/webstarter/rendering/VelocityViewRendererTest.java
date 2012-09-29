@@ -30,6 +30,11 @@ public class VelocityViewRendererTest {
         assertThat(responseContent.toString(), is(equalToIgnoringWhiteSpace(templateWithModelValues("No model", "This is a template where no model will be applied."))));
     }
 
+	@Test(expected = RuntimeException.class)
+	public void anExceptionIsThrownIfAnExpressionInTheTemplateCannotBeResolved() throws IOException {
+		renderer.render("with_model", null, responseContent);
+	}
+
     private String templateWithModelValues(String title, String content) {
         return "<html>\n" +
                 "\t<head>\n" +
