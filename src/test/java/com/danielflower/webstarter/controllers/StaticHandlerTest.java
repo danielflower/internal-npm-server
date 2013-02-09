@@ -69,10 +69,10 @@ public class StaticHandlerTest {
 			allowing(path).getPath(); will(returnValue("/foundation.html"));
 			allowing(response).getOutputStream(); will(returnValue(outputStream));
 
-			oneOf(response).set("Content-Type", "text/html");
+			oneOf(response).setValue("Content-Type", "text/html");
 			oneOf(response).setDate(with("Date"), with(any(long.class)));
 			oneOf(response).setDate(with("Last-Modified"), with(any(long.class)));
-			oneOf(response).set("Cache-Control", "max-age=29030400, public");
+			oneOf(response).setValue("Cache-Control", "max-age=29030400, public");
 		}});
 		staticHandler.handle(request, response);
 		assertThat(responseBytes.toByteArray(), is(equalTo(FileUtils.readFileToByteArray(sampleFile))));
@@ -85,10 +85,10 @@ public class StaticHandlerTest {
 			allowing(path).getPath(); will(onConsecutiveCalls(returnValue("/robots.txt"), returnValue("/favicon.ico")));
 			allowing(response).getOutputStream(); will(onConsecutiveCalls(returnValue(outputStream), returnValue(outputStream2)));
 
-			exactly(2).of(response).set(with("Content-Type"), with(any(String.class)));
+			exactly(2).of(response).setValue(with("Content-Type"), with(any(String.class)));
 			exactly(2).of(response).setDate(with("Date"), with(any(long.class)));
 			exactly(2).of(response).setDate(with("Last-Modified"), with(any(long.class)));
-			exactly(2).of(response).set("Cache-Control", "max-age=604800, public");
+			exactly(2).of(response).setValue("Cache-Control", "max-age=604800, public");
 		}});
 		staticHandler.handle(request, response);
 		staticHandler.handle(request, response);

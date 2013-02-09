@@ -55,7 +55,7 @@ public class ErrorHandlingWebContainerTest {
             will(throwException(new ResourceNotFoundException("/non/existent/path")));
 
             oneOf(response).setCode(404);
-            oneOf(response).setText("404 Not Found");
+            oneOf(response).setDescription("404 Not Found");
             oneOf(response).close();
         }});
         errorHandlingWebContainer.handle(request, response);
@@ -71,7 +71,7 @@ public class ErrorHandlingWebContainerTest {
             will(throwException(new UnhandledException("Not the original exception", originalException)));
 
             oneOf(response).setCode(500);
-            oneOf(response).setText("500 Internal Error");
+            oneOf(response).setDescription("500 Internal Error");
             oneOf(response).close();
         }});
         errorHandlingWebContainer.handle(request, response);

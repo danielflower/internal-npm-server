@@ -40,15 +40,15 @@ public class StaticHandler implements RequestHandler {
 
 		String mimeType = contentTypeGuesser.fromName(localFile.getName());
 		long time = System.currentTimeMillis();
-
-		resp.set("Content-Type", mimeType);
+		
+		resp.setValue("Content-Type", mimeType);
 		resp.setDate("Date", time);
 		resp.setDate("Last-Modified", localFile.lastModified());
 
 		if ("/robots.txt".equals(path) || "/favicon.ico".equals(path)) {
-			resp.set("Cache-Control", "max-age=604800, public");
+			resp.setValue("Cache-Control", "max-age=604800, public");
 		} else {
-			resp.set("Cache-Control", "max-age=29030400, public");
+			resp.setValue("Cache-Control", "max-age=29030400, public");
 		}
 		OutputStream out = resp.getOutputStream();
 

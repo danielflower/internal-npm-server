@@ -18,14 +18,14 @@ public class NonCachableHttpViewRenderer implements HttpViewRenderer {
 
     @Override
     public void render(String viewName, Map<String, Object> model, Response response) throws IOException {
-        response.add(ContentTypeGuesser.CONTENT_TYPE_HEADER, ContentTypeGuesser.TEXT_HTML + "; charset=UTF-8");
-        response.add("Expires", "Sun, 19 Nov 1978 05:00:00 GMT");
+        response.addValue(ContentTypeGuesser.CONTENT_TYPE_HEADER, ContentTypeGuesser.TEXT_HTML + "; charset=UTF-8");
+        response.addValue("Expires", "Sun, 19 Nov 1978 05:00:00 GMT");
         response.addDate("Date", System.currentTimeMillis());
         response.addDate("Last-Modified", System.currentTimeMillis());
-        response.add("Cache-Control", "no-store, no-cache, must-revalidate");
-        response.add("Cache-Control", "post-check=0, pre-check=0");
-        response.add("Pragma", "no-cache");
-        response.add("Server", "Simple-Java-Web-Starter");
+        response.addValue("Cache-Control", "no-store, no-cache, must-revalidate");
+        response.addValue("Cache-Control", "post-check=0, pre-check=0");
+        response.addValue("Pragma", "no-cache");
+        response.addValue("Server", "Simple-Java-Web-Starter");
 
         Writer writer = new OutputStreamWriter(response.getOutputStream());
         viewRenderer.render(viewName, model, writer);

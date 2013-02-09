@@ -8,6 +8,7 @@ import com.danielflower.webstarter.rendering.NonCachableHttpViewRenderer;
 import com.danielflower.webstarter.rendering.VelocityViewRenderer;
 import com.danielflower.webstarter.rendering.ViewRenderer;
 import org.simpleframework.http.core.Container;
+import org.simpleframework.http.core.ContainerServer;
 import org.simpleframework.transport.connect.SocketConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class WebServer {
     }
 
     public void start() throws IOException {
-        this.connection = new SocketConnection(webContainer);
+        this.connection = new SocketConnection(new ContainerServer(webContainer));
         InetSocketAddress address = new InetSocketAddress(port);
         connection.connect(address);
         log.info("Server started at http://localhost:" + address.getPort());

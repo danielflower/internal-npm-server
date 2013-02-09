@@ -10,7 +10,7 @@ repositories {
     mavenCentral()
 }
 
-List compileAll = [ "org.simpleframework:simple:4.1.21", "org.slf4j:slf4j-api:1.6.4",
+List compileAll = [ "org.simpleframework:simple:5.0.4", "org.slf4j:slf4j-api:1.6.4",
 				    "commons-io:commons-io:2.1",
 				    "org.apache.velocity:velocity:1.7",
 				    "ch.qos.logback:logback-classic:1.0.6"

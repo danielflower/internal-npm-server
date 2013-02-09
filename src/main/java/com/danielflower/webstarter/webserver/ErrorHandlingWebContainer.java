@@ -37,7 +37,7 @@ public class ErrorHandlingWebContainer implements Container {
     private void writeErrorToClient(Response resp, int httpErrorCode, String httpErrorMessage, String messageDisplayedToUser) {
         try {
             resp.setCode(httpErrorCode);
-            resp.setText(httpErrorMessage);
+            resp.setDescription(httpErrorMessage);
             PrintStream printStream = resp.getPrintStream();
             printStream.print(messageDisplayedToUser);
             printStream.close();
