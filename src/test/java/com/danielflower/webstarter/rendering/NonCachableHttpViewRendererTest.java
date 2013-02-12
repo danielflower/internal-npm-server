@@ -34,14 +34,14 @@ public class NonCachableHttpViewRendererTest {
             oneOf(response).getOutputStream(); will(returnValue(outputStream));
 
             // check that response was correctly dealt with
-            oneOf(response).add(with("Server"), with(any(String.class)));
-            oneOf(response).add("Expires", "Sun, 19 Nov 1978 05:00:00 GMT");
+            oneOf(response).addValue(with("Server"), with(any(String.class)));
+            oneOf(response).addValue("Expires", "Sun, 19 Nov 1978 05:00:00 GMT");
             oneOf(response).addDate(with("Date"), with(any(long.class)));
             oneOf(response).addDate(with("Last-Modified"), with(any(long.class)));
-            oneOf(response).add("Cache-Control", "no-store, no-cache, must-revalidate");
-            oneOf(response).add("Cache-Control", "post-check=0, pre-check=0");
-            oneOf(response).add("Pragma", "no-cache");
-            oneOf(response).add("Content-Type", "text/html; charset=UTF-8");
+            oneOf(response).addValue("Cache-Control", "no-store, no-cache, must-revalidate");
+            oneOf(response).addValue("Cache-Control", "post-check=0, pre-check=0");
+            oneOf(response).addValue("Pragma", "no-cache");
+            oneOf(response).addValue("Content-Type", "text/html; charset=UTF-8");
             oneOf(response).close();
         }});
         nonCachableHttpResponseViewRenderer.render(viewName, model, response);
