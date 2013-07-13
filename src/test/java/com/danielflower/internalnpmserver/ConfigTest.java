@@ -10,20 +10,21 @@ import static org.junit.Assert.assertThat;
 public class ConfigTest {
 
     private final File npmCacheFolder = new File("target/whatever");
+    private String webServerHostName = "localhost";
 
     @Test(expected = RuntimeException.class)
     public void httpsIsNotAllowedForNPMRegistryURL() {
-        new Config(1000, npmCacheFolder, "https://www.blah.com");
+        new Config(1000, npmCacheFolder, "https://www.blah.com", webServerHostName);
     }
 
     @Test(expected = RuntimeException.class)
     public void schemeNameMustBeIncluded() {
-        new Config(1000, npmCacheFolder, "www.blah.com");
+        new Config(1000, npmCacheFolder, "www.blah.com", webServerHostName);
     }
 
     @Test
     public void httpSchemeIsAcceptable() {
-        new Config(1000, npmCacheFolder, "http://registry.npmjs.org/");
+        new Config(1000, npmCacheFolder, "http://registry.npmjs.org/", webServerHostName);
     }
 
     @Test
@@ -32,7 +33,7 @@ public class ConfigTest {
         assertThat(config.getPort(), equalTo(1234));
         assertThat(config.getNpmCacheFolder(), equalTo(new File("target/some/folder")));
         assertThat(config.getNpmRepositoryURL(), equalTo("http://registry.npmjs.org/"));
-
+        assertThat(config.getWebServerHostName(), equalTo("localhost"));
     }
 
     @Test(expected = RuntimeException.class)

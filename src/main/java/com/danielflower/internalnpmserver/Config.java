@@ -15,8 +15,10 @@ public class Config {
     private final int port;
     private final File npmCacheFolder;
     private final String npmRepositoryURL;
+    private final String webServerHostName;
 
-    public Config(int port, File npmCacheFolder, String npmRepositoryURL) {
+    public Config(int port, File npmCacheFolder, String npmRepositoryURL, String webServerHostName) {
+        this.webServerHostName = webServerHostName;
         if (!npmRepositoryURL.startsWith("http://")) {
             throw new RuntimeException("The NPM repository '" + npmRepositoryURL
                     + "' is invalid; it must start with http://, for example: http://registry.npmjs.org/");
@@ -65,7 +67,8 @@ public class Config {
         }
 
         String npmURL = props.getProperty("npmRegistryURL");
-        return new Config(port, cacheFolder, npmURL);
+        String webServerHostName = props.getProperty("webServerHostName");
+        return new Config(port, cacheFolder, npmURL, webServerHostName);
     }
 
     private static String getCanonicalPath(File file) {
@@ -74,5 +77,9 @@ public class Config {
         } catch (IOException e) {
             return file.getAbsolutePath();
         }
+    }
+
+    public String getWebServerHostName() {
+        return webServerHostName;
     }
 }

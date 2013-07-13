@@ -33,10 +33,12 @@ public class WebServer {
     private SocketConnection connection;
     private final Container webContainer;
     private final int port;
+    private final String hostname;
 
-    private WebServer(Container webContainer, int port) {
+    private WebServer(Container webContainer, int port, String hostname) {
         this.webContainer = webContainer;
         this.port = port;
+        this.hostname = hostname;
     }
 
     public static WebServer createWebServer(Config config) {
@@ -48,14 +50,17 @@ public class WebServer {
         };
         RequestRouter router = new RequestRouter(handlers);
         ErrorHandlingWebContainer errorHandler = new ErrorHandlingWebContainer(router);
-        return new WebServer(new LoggingWebContainer(errorHandler), config.getPort());
+        return new WebServer(new LoggingWebContainer(errorHandler), config.getPort(), config.getWebServerHostName());
     }
 
     public void start() throws IOException {
         this.connection = new SocketConnection(new ContainerServer(webContainer));
         InetSocketAddress address = new InetSocketAddress(port);
         connection.connect(address);
-        log.info("Server started at http://localhost:" + address.getPort());
+        String localUrl = "http://" + hostname + ":" + address.getPort();
+        log.info("Server started at " + localUrl);
+        log.info("To use this as your NPM registry, run the following on your local PC:");
+        log.info("npm config set registry " + localUrl + "/npm/");
     }
 
     public void stop() throws IOException {
