@@ -1,8 +1,6 @@
 package integration.com.danielflower.internalnpmserver.services;
 
 import com.danielflower.internalnpmserver.services.HttpProxyServiceImpl;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ProxyOutputStream;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -12,8 +10,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.simpleframework.http.Response;
 
-import java.io.*;
-import java.net.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.URL;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;

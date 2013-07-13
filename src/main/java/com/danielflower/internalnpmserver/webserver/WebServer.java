@@ -2,11 +2,13 @@ package com.danielflower.internalnpmserver.webserver;
 
 import com.danielflower.internalnpmserver.App;
 import com.danielflower.internalnpmserver.controllers.HomepageHandler;
+import com.danielflower.internalnpmserver.controllers.NpmHandler;
 import com.danielflower.internalnpmserver.controllers.StaticHandler;
 import com.danielflower.internalnpmserver.rendering.HttpViewRenderer;
 import com.danielflower.internalnpmserver.rendering.NonCachableHttpViewRenderer;
 import com.danielflower.internalnpmserver.rendering.VelocityViewRenderer;
 import com.danielflower.internalnpmserver.rendering.ViewRenderer;
+import com.danielflower.internalnpmserver.services.HttpProxyServiceImpl;
 import org.simpleframework.http.core.Container;
 import org.simpleframework.http.core.ContainerServer;
 import org.simpleframework.transport.connect.SocketConnection;
@@ -23,7 +25,9 @@ public class WebServer {
     private static ViewRenderer viewRenderer = new VelocityViewRenderer("/views/");
     private static HttpViewRenderer httpViewRenderer = new NonCachableHttpViewRenderer(viewRenderer);
     static final RequestHandler[] DEFAULT_REQUEST_HANDLERS = new RequestHandler[]{
-            new HomepageHandler(httpViewRenderer), new StaticHandler()
+            new HomepageHandler(httpViewRenderer),
+            new NpmHandler(new HttpProxyServiceImpl(), "http://registry.npmjs.org/"),
+            new StaticHandler()
     };
 
     private SocketConnection connection;
