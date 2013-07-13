@@ -1,5 +1,9 @@
 target
-.idea/workspace.xml
+
+#IntelliJ
+.idea/
+*.iml
+*.ipr
 
 #Gradle
 bin/

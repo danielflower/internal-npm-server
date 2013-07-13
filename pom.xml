@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.danielflower</groupId>
-    <artifactId>simple-java-web-starter</artifactId>
-    <version>1.0</version>
+    <artifactId>internal-npm-server</artifactId>
+    <version>0.0.0-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
