@@ -71,4 +71,18 @@ public class RequestRouterTest {
         RequestRouter container = new RequestRouter(new RequestHandler[]{supported});
         container.handle(request, response);
     }
+
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void handlersCanThrowResourceNotFoundExceptionsAndThoseArePreserved() throws Exception {
+        final ResourceNotFoundException exceptionThrownByHandler = new ResourceNotFoundException("/blah");
+        context.checking(new Expectations() {{
+            allowing(supported).canHandle(with(any(String.class))); will(returnValue(true));
+            allowing(supported).handle(with(any(Request.class)), with(any(Response.class)));
+            will(throwException(exceptionThrownByHandler));
+        }});
+
+        RequestRouter container = new RequestRouter(new RequestHandler[]{supported});
+        container.handle(request, response);
+    }
 }

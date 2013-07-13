@@ -16,13 +16,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStreamWriter;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
-public class StaticHandlerTest {
+public class StaticHandlerImplTest {
 
-    private final StaticHandler staticHandler = new StaticHandler();
+    private final StaticHandlerImpl staticHandler = new StaticHandlerImpl(new File("src/main/resources/webroot"));
 	private final Mockery context = new JUnit4Mockery();
 	private final Request request = context.mock(Request.class);
 	private final Response response = context.mock(Response.class);

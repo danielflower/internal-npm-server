@@ -1,6 +1,5 @@
 package com.danielflower.internalnpmserver.webserver;
 
-import com.danielflower.internalnpmserver.controllers.StaticHandler;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -34,7 +33,7 @@ public class ContentTypeGuesserTest {
     @Test
     public void everyStaticResourceHasMimeTypeSet() throws IOException {
 
-        Collection<File> files = FileUtils.listFiles(StaticHandler.webroot, null, true);
+        Collection<File> files = FileUtils.listFiles(WebServer.STATIC_ROOT, null, true);
         for (File file : files) {
             String path = file.getCanonicalPath();
             assertThat("Mime type of " + path, contentTypeGuesser.fromName(path), is(not("")));

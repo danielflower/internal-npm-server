@@ -19,6 +19,8 @@ public class RequestRouter implements Container {
                 try {
                     handler.handle(req, resp);
                     return;
+                } catch (ResourceNotFoundException rnfe) {
+                    throw rnfe;
                 } catch (Exception e) {
                     throw new UnhandledException(e);
                 }
