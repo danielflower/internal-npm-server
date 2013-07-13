@@ -26,26 +26,25 @@ public class WebServer {
     private static ViewRenderer viewRenderer = new VelocityViewRenderer("/views/");
     private static HttpViewRenderer httpViewRenderer = new NonCachableHttpViewRenderer(viewRenderer);
     public static final File STATIC_ROOT = new File("src/main/resources/webroot");
-    public static final File NPM_CACHE_FOLDER = new File("target/npmcache");
-    static final RequestHandler[] DEFAULT_REQUEST_HANDLERS = new RequestHandler[]{
-            new HomepageHandler(httpViewRenderer),
-            new NpmHandler(new FileDownloaderImpl(), new StaticHandlerImpl(NPM_CACHE_FOLDER), "http://registry.npmjs.org/", NPM_CACHE_FOLDER),
-            new StaticHandlerImpl(STATIC_ROOT)
-    };
 
     private SocketConnection connection;
     private final Container webContainer;
     private final int port;
 
-    public WebServer(Container webContainer, int port) throws IOException {
+    private WebServer(Container webContainer, int port) {
         this.webContainer = webContainer;
         this.port = port;
     }
 
-    public static LoggingWebContainer createLoggingErrorHandlingRoutingContainer() {
-        RequestRouter router = new RequestRouter(DEFAULT_REQUEST_HANDLERS);
+    public static WebServer createWebServer(int port, File npmCacheFolder, String npmRepositoryURL) {
+        RequestHandler[] handlers = new RequestHandler[]{
+                new HomepageHandler(httpViewRenderer),
+                new NpmHandler(new FileDownloaderImpl(), new StaticHandlerImpl(npmCacheFolder), npmRepositoryURL, npmCacheFolder),
+                new StaticHandlerImpl(STATIC_ROOT)
+        };
+        RequestRouter router = new RequestRouter(handlers);
         ErrorHandlingWebContainer errorHandler = new ErrorHandlingWebContainer(router);
-        return new LoggingWebContainer(errorHandler);
+        return new WebServer(new LoggingWebContainer(errorHandler), port);
     }
 
     public void start() throws IOException {

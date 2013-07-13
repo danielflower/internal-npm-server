@@ -3,6 +3,7 @@ package integration.com.danielflower.internalnpmserver;
 import com.danielflower.internalnpmserver.webserver.WebServer;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
@@ -18,7 +19,7 @@ public class WebServerTest {
 
     @Test
     public void serverCanBeStartedAndStoppedMultipleTimes() throws Exception {
-        WebServer app = new WebServer(WebServer.createLoggingErrorHandlingRoutingContainer(), port);
+        WebServer app = WebServer.createWebServer(port, new File("target/npmcache"), "http://registry.npmjs.org/");
 
         assertRequestsCannotBeMade();
 
