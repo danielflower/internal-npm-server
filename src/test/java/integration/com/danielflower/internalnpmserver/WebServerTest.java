@@ -1,5 +1,6 @@
 package integration.com.danielflower.internalnpmserver;
 
+import com.danielflower.internalnpmserver.Config;
 import com.danielflower.internalnpmserver.webserver.WebServer;
 import org.junit.Test;
 
@@ -19,7 +20,8 @@ public class WebServerTest {
 
     @Test
     public void serverCanBeStartedAndStoppedMultipleTimes() throws Exception {
-        WebServer app = WebServer.createWebServer(port, new File("target/npmcache"), "http://registry.npmjs.org/");
+        Config config = new Config(port, new File("target/npmcache"), "http://registry.npmjs.org/");
+        WebServer app = WebServer.createWebServer(config);
 
         assertRequestsCannotBeMade();
 

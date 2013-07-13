@@ -1,6 +1,7 @@
 package com.danielflower.internalnpmserver.webserver;
 
 import com.danielflower.internalnpmserver.App;
+import com.danielflower.internalnpmserver.Config;
 import com.danielflower.internalnpmserver.controllers.HomepageHandler;
 import com.danielflower.internalnpmserver.controllers.NpmHandler;
 import com.danielflower.internalnpmserver.controllers.StaticHandlerImpl;
@@ -36,15 +37,15 @@ public class WebServer {
         this.port = port;
     }
 
-    public static WebServer createWebServer(int port, File npmCacheFolder, String npmRepositoryURL) {
+    public static WebServer createWebServer(Config config) {
         RequestHandler[] handlers = new RequestHandler[]{
                 new HomepageHandler(httpViewRenderer),
-                new NpmHandler(new FileDownloaderImpl(), new StaticHandlerImpl(npmCacheFolder), npmRepositoryURL, npmCacheFolder),
+                new NpmHandler(new FileDownloaderImpl(), new StaticHandlerImpl(config.getNpmCacheFolder()), config.getNpmRepositoryURL(), config.getNpmCacheFolder()),
                 new StaticHandlerImpl(STATIC_ROOT)
         };
         RequestRouter router = new RequestRouter(handlers);
         ErrorHandlingWebContainer errorHandler = new ErrorHandlingWebContainer(router);
-        return new WebServer(new LoggingWebContainer(errorHandler), port);
+        return new WebServer(new LoggingWebContainer(errorHandler), config.getPort());
     }
 
     public void start() throws IOException {

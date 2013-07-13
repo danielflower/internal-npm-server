@@ -2,14 +2,17 @@ package com.danielflower.internalnpmserver;
 
 import com.danielflower.internalnpmserver.webserver.WebServer;
 
-import java.io.File;
 import java.io.IOException;
 
 public class App {
 
     public static void main(String[] list) throws Exception {
-    	final int PORT = 8081;
-        final WebServer app = WebServer.createWebServer(PORT, new File("target/npmcache"), "http://registry.npmjs.org/");
+        if (list.length != 1) {
+            System.out.println("Start with an argument pointing to a config file");
+            return;
+        }
+        Config config = Config.fromFile(list[0]);
+        final WebServer app = WebServer.createWebServer(config);
 
         app.start();
 
