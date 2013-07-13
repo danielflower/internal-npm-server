@@ -9,9 +9,12 @@ import org.simpleframework.http.Response;
 
 import java.io.File;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NpmHandler implements RequestHandler {
 
+    private static final Pattern extensionPattern = Pattern.compile("[A-Za-z]+");
 
     public static final String PREFIX = "/npm";
     private final FileDownloader proxyService;
@@ -51,8 +54,9 @@ public class NpmHandler implements RequestHandler {
     }
 
     private String getLocalPathTreatingExtensionlessFilesAsJSONFiles(String path) {
-        boolean hasFileExtension = FilenameUtils.getExtension(path).length() > 1;
-        if (!hasFileExtension) {
+        String ext = FilenameUtils.getExtension(path);
+        Matcher matcher = extensionPattern.matcher(ext);
+        if (!matcher.matches()) {
             path += ".json";
         }
         return path;

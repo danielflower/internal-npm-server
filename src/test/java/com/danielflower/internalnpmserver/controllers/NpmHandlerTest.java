@@ -55,11 +55,25 @@ public class NpmHandlerTest {
 
     @Test
     public void usesJSONAsTheFileExtensionOfAPIRequests() throws Exception {
-        context.checking(new Expectations() {{
-            allowing(request).getTarget(); will(returnValue("/npm/commander/1.0.1"));
-            allowing(staticHandler).canHandle("/commander/1.0.1.json");will(returnValue(true));
+        runJsonRenameTest("commander/1.0.1");
+    }
 
-            oneOf(staticHandler).streamFileToResponse("/commander/1.0.1.json", response);
+    @Test
+    public void usesJSONAsTheFileExtensionOfAPIRequestsForHypenatedVersions() throws Exception {
+        runJsonRenameTest("colors/0.6.0-1");
+    }
+
+    @Test
+    public void usesJSONAsTheFileExtensionOfAPIRequestsForNumberedExtensions() throws Exception {
+        runJsonRenameTest("colors/0.6.001");
+    }
+
+    private void runJsonRenameTest(final String path) throws Exception {
+        context.checking(new Expectations() {{
+            allowing(request).getTarget();will(returnValue("/npm/" + path));
+            allowing(staticHandler).canHandle("/" + path + ".json");will(returnValue(true));
+
+            oneOf(staticHandler).streamFileToResponse("/" + path + ".json", response);
         }});
         handler.handle(request, response);
     }
