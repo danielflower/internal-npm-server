@@ -21,7 +21,17 @@
             <outputDirectory>/</outputDirectory>
             <excludes>
                 <exclude>descriptor.xml</exclude>
+                <exclude>*.sh</exclude>
             </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>src/main/assembly</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.sh</include>
+            </includes>
+            <fileMode>0777</fileMode>
+            <lineEnding>unix</lineEnding>
         </fileSet>
     </fileSets>
 </assembly>

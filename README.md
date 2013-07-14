@@ -29,8 +29,8 @@ Extract the server to a new directory. Edit [config.properties](https://github.c
 to set the hostname of your computer, the port to run on, and the location to keep the cached NPM files in.
 If behind a proxy, you can set your proxy settings too.
 
-Windows: run start.bat
-Linux: run start.sh which will start it in the background. Run stop.sh to stop it.
+Windows: run.bat will run it. Ctrl+C to stop it. There is no windows service version currently.
+Linux: start.sh will start it in the background. Run stop.sh to stop it.
 
 Configure NPM on your development machines
 ------------------------------------------

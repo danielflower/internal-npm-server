@@ -6,7 +6,7 @@
 
     <groupId>com.danielflower</groupId>
     <artifactId>internal-npm-server</artifactId>
-    <version>0.1.0</version>
+    <version>0.8.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
