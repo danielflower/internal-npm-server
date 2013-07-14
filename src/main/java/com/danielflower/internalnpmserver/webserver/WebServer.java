@@ -40,9 +40,9 @@ public class WebServer {
     }
 
     public static WebServer createWebServer(Config config) {
-        FileDownloader downloader = new PackageReWritingFileDownloader(new FileDownloaderImpl(), config.getNpmRepositoryURL(), "http://localhost:" + config.getPort() + "/npm");
+        FileDownloader downloader = new PackageReWritingFileDownloader(new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), "http://localhost:" + config.getPort() + "/npm");
         StaticHandlerImpl npmCacheStaticHandler = new StaticHandlerImpl(config.getNpmCacheFolder());
-        RemoteDownloadPolicy remoteDownloadPolicy = new OnlyReDownloadCachedJSONFilesDownloadPolicy(npmCacheStaticHandler);
+        RemoteDownloadPolicy remoteDownloadPolicy = new ReDownloadCachedJSONFilesPolicy(npmCacheStaticHandler);
         RequestHandler[] handlers = new RequestHandler[]{
                 new HomepageHandler(httpViewRenderer),
                 new NpmHandler(downloader, npmCacheStaticHandler, config.getNpmRepositoryURL(), config.getNpmCacheFolder(), remoteDownloadPolicy),

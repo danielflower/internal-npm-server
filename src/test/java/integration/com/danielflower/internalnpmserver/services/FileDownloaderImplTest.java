@@ -5,6 +5,7 @@ import com.danielflower.internalnpmserver.webserver.ResourceNotFoundException;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ import static org.junit.Assert.assertThat;
 
 public class FileDownloaderImplTest {
 
-    private final FileDownloaderImpl downloader = new FileDownloaderImpl();
+    private final FileDownloaderImpl downloader = new FileDownloaderImpl(Proxy.NO_PROXY);
 
     @Test
     public void downloadsFromAURLToAFile() throws Exception {

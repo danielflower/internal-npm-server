@@ -3,10 +3,10 @@ package com.danielflower.internalnpmserver.services;
 import com.danielflower.internalnpmserver.controllers.StaticHandler;
 import org.apache.commons.io.FilenameUtils;
 
-public class OnlyReDownloadCachedJSONFilesDownloadPolicy implements RemoteDownloadPolicy {
+public class ReDownloadCachedJSONFilesPolicy implements RemoteDownloadPolicy {
     private final StaticHandler staticHandler;
 
-    public OnlyReDownloadCachedJSONFilesDownloadPolicy(StaticHandler staticHandler) {
+    public ReDownloadCachedJSONFilesPolicy(StaticHandler staticHandler) {
         this.staticHandler = staticHandler;
     }
 

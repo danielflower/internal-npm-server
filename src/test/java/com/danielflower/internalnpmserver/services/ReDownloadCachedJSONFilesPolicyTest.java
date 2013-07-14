@@ -12,13 +12,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
-public class OnlyReDownloadCachedJSONFilesDownloadPolicyTest {
+public class ReDownloadCachedJSONFilesPolicyTest {
 
     private final Mockery context = new JUnit4Mockery();
     private final StaticHandler staticHandler = context.mock(StaticHandler.class);
     private final String pathToJSON = "/some-package/1.2.3.json";
     private final String pathToNonJSON = "/some-package/_/some-package.1.2.3.tgz";
-    private final OnlyReDownloadCachedJSONFilesDownloadPolicy policy = new OnlyReDownloadCachedJSONFilesDownloadPolicy(staticHandler);
+    private final ReDownloadCachedJSONFilesPolicy policy = new ReDownloadCachedJSONFilesPolicy(staticHandler);
 
     @Test
     public void ifTheStaticHandlerCannotHandleItThenAlwaysDownload() throws Exception {

@@ -1,12 +1,17 @@
 package com.danielflower.internalnpmserver;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.util.Properties;
 
 public class Config {
@@ -16,9 +21,11 @@ public class Config {
     private final File npmCacheFolder;
     private final String npmRepositoryURL;
     private final String webServerHostName;
+    private final Proxy proxy;
 
-    public Config(int port, File npmCacheFolder, String npmRepositoryURL, String webServerHostName) {
+    public Config(int port, File npmCacheFolder, String npmRepositoryURL, String webServerHostName, Proxy proxy) {
         this.webServerHostName = webServerHostName;
+        this.proxy = proxy;
         if (!npmRepositoryURL.startsWith("http://")) {
             throw new RuntimeException("The NPM repository '" + npmRepositoryURL
                     + "' is invalid; it must start with http://, for example: http://registry.npmjs.org/");
@@ -63,12 +70,35 @@ public class Config {
         File cacheFolder = new File(props.getProperty("cacheFolder"));
 
         if (cacheFolder.mkdirs()) {
-            log.info("Created " + getCanonicalPath(cacheFolder));
+            log.info("Created for NPM modules cache: " + getCanonicalPath(cacheFolder));
+        } else {
+            log.info("Using the following folder to store NPM modules: " + getCanonicalPath(cacheFolder));
         }
 
         String npmURL = props.getProperty("npmRegistryURL");
         String webServerHostName = props.getProperty("webServerHostName");
-        return new Config(port, cacheFolder, npmURL, webServerHostName);
+        Proxy proxy = getProxy(props);
+        return new Config(port, cacheFolder, npmURL, webServerHostName, proxy);
+    }
+
+    private static Proxy getProxy(Properties props) {
+        String proxyHost = props.getProperty("proxyHost");
+        if (StringUtils.isBlank(proxyHost)) {
+            return Proxy.NO_PROXY;
+        }
+        int proxyPort = Integer.parseInt(props.getProperty("proxyPort"));
+
+        final String username = props.getProperty("proxyUsername");
+        if (StringUtils.isNotBlank(username)) {
+            final String password = props.getProperty("proxyPassword");
+            Authenticator.setDefault(new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password.toCharArray());
+                }
+            });
+        }
+
+        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
     }
 
     private static String getCanonicalPath(File file) {
@@ -81,5 +111,9 @@ public class Config {
 
     public String getWebServerHostName() {
         return webServerHostName;
+    }
+
+    public Proxy getProxy() {
+        return proxy;
     }
 }
