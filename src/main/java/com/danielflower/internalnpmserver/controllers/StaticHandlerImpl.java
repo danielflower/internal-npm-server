@@ -9,9 +9,9 @@ import org.simpleframework.http.Response;
 import java.io.*;
 
 public class StaticHandlerImpl implements StaticHandler, RequestHandler {
-	private final File webroot;
 
-	private final ContentTypeGuesser contentTypeGuesser = new ContentTypeGuesser();
+	private final File webroot;
+    private final ContentTypeGuesser contentTypeGuesser = new ContentTypeGuesser();
 
     public StaticHandlerImpl(File folderToServeFrom) {
         webroot = folderToServeFrom;

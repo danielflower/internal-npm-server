@@ -9,9 +9,7 @@ import com.danielflower.internalnpmserver.rendering.HttpViewRenderer;
 import com.danielflower.internalnpmserver.rendering.NonCachableHttpViewRenderer;
 import com.danielflower.internalnpmserver.rendering.VelocityViewRenderer;
 import com.danielflower.internalnpmserver.rendering.ViewRenderer;
-import com.danielflower.internalnpmserver.services.FileDownloader;
-import com.danielflower.internalnpmserver.services.FileDownloaderImpl;
-import com.danielflower.internalnpmserver.services.PackageReWritingFileDownloader;
+import com.danielflower.internalnpmserver.services.*;
 import org.simpleframework.http.core.Container;
 import org.simpleframework.http.core.ContainerServer;
 import org.simpleframework.transport.connect.SocketConnection;
@@ -43,9 +41,11 @@ public class WebServer {
 
     public static WebServer createWebServer(Config config) {
         FileDownloader downloader = new PackageReWritingFileDownloader(new FileDownloaderImpl(), config.getNpmRepositoryURL(), "http://localhost:" + config.getPort() + "/npm");
+        StaticHandlerImpl npmCacheStaticHandler = new StaticHandlerImpl(config.getNpmCacheFolder());
+        RemoteDownloadPolicy remoteDownloadPolicy = new OnlyReDownloadCachedJSONFilesDownloadPolicy(npmCacheStaticHandler);
         RequestHandler[] handlers = new RequestHandler[]{
                 new HomepageHandler(httpViewRenderer),
-                new NpmHandler(downloader, new StaticHandlerImpl(config.getNpmCacheFolder()), config.getNpmRepositoryURL(), config.getNpmCacheFolder()),
+                new NpmHandler(downloader, npmCacheStaticHandler, config.getNpmRepositoryURL(), config.getNpmCacheFolder(), remoteDownloadPolicy),
                 new StaticHandlerImpl(STATIC_ROOT)
         };
         RequestRouter router = new RequestRouter(handlers);
