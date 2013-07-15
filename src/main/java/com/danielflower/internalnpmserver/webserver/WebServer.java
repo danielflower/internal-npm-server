@@ -26,7 +26,16 @@ public class WebServer {
 
     private static ViewRenderer viewRenderer = new VelocityViewRenderer("/views/");
     private static HttpViewRenderer httpViewRenderer = new NonCachableHttpViewRenderer(viewRenderer);
-    public static final File STATIC_ROOT = new File("src/main/resources/webroot");
+    public static final File STATIC_ROOT;
+
+    static {
+        File root = new File("src/main/resources/webroot");
+        if (!root.isDirectory()) {
+            // for when run from start.sh... this is horrible... forgive me
+            root = new File("server/webroot");
+        }
+        STATIC_ROOT = root;
+    }
 
     private SocketConnection connection;
     private final Container webContainer;
@@ -40,11 +49,15 @@ public class WebServer {
     }
 
     public static WebServer createWebServer(Config config) {
-        FileDownloader downloader = new PackageReWritingFileDownloader(new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), "http://localhost:" + config.getPort() + "/npm");
+
+        FileDownloader downloader =
+                new PackageReWritingFileDownloader(
+                new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), config.getNpmEndPoint().toString());
+
         StaticHandlerImpl npmCacheStaticHandler = new StaticHandlerImpl(config.getNpmCacheFolder());
         RemoteDownloadPolicy remoteDownloadPolicy = new ReDownloadCachedJSONFilesPolicy(npmCacheStaticHandler);
         RequestHandler[] handlers = new RequestHandler[]{
-                new HomepageHandler(httpViewRenderer),
+                new HomepageHandler(httpViewRenderer, config),
                 new NpmHandler(downloader, npmCacheStaticHandler, config.getNpmRepositoryURL(), config.getNpmCacheFolder(), remoteDownloadPolicy),
                 new StaticHandlerImpl(STATIC_ROOT)
         };

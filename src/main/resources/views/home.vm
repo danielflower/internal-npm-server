@@ -37,7 +37,7 @@
 		<p>This is an NPM server. To start using it you can point your NPM to this server:</p>
 
         <p>
-            <code>npm config set registry</code>
+            <code>npm config set registry $npmUrl</code>
         </p>
 
 	</div>

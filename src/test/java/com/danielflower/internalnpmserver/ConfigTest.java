@@ -31,6 +31,12 @@ public class ConfigTest {
     }
 
     @Test
+    public void usesTheHostNameAndPortToCreateTheNPMURL() {
+        Config config = new Config(1000, npmCacheFolder, "http://registry.npmjs.org/", webServerHostName, null);
+        assertThat(config.getNpmEndPoint().toString(), equalTo("http://localhost:1000/npm/"));
+    }
+
+    @Test
     public void configCanBeReadyFromPropertiesFile() {
         Config config = Config.fromFile("src/test/resources/configs/sample-config.properties");
         assertThat(config.getPort(), equalTo(1234));

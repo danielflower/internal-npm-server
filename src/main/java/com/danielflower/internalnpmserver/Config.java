@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
+import java.net.*;
 import java.util.Properties;
 
 public class Config {
@@ -115,5 +112,13 @@ public class Config {
 
     public Proxy getProxy() {
         return proxy;
+    }
+
+    public URL getNpmEndPoint() {
+        try {
+            return new URL("http", webServerHostName, port, "/npm/");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e); // yay for checked exceptions
+        }
     }
 }

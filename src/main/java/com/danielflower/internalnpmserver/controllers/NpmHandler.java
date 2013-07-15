@@ -1,6 +1,7 @@
 package com.danielflower.internalnpmserver.controllers;
 
 import com.danielflower.internalnpmserver.services.FileDownloader;
+import com.danielflower.internalnpmserver.services.LockMap;
 import com.danielflower.internalnpmserver.services.RemoteDownloadPolicy;
 import com.danielflower.internalnpmserver.webserver.RequestHandler;
 import org.apache.commons.io.FilenameUtils;
@@ -22,6 +23,7 @@ public class NpmHandler implements RequestHandler {
     private static final Pattern extensionPattern = Pattern.compile("[A-Za-z]+");
 
     public static final String PREFIX = "/npm";
+    private static LockMap<String> lockMap = new LockMap<String>();
     private final FileDownloader proxyService;
     private final StaticHandler staticHandler;
     private final String npmRepositoryURL;
@@ -48,19 +50,21 @@ public class NpmHandler implements RequestHandler {
 
         String localPath = getLocalPathTreatingExtensionlessFilesAsJSONFiles(remotePath);
 
-        if (remoteDownloadPolicy.shouldDownload(localPath)) {
-            URL source = new URL(npmRepositoryURL + remotePath);
-            try {
-                proxyService.fetch(source, new File(cacheFolder, localPath));
-            } catch (Exception e) {
-                if (staticHandler.canHandle(localPath)) {
-                    log.warn("Failed to download " + source + " but it's not a huge problem as the local cached copy can be used. Error was: " + e.getMessage());
-                    staticHandler.streamFileToResponse(localPath, response);
-                    return;
-                } else {
-                    throw e;
-                }
+        synchronized (lockMap.get(localPath)) {
+            if (remoteDownloadPolicy.shouldDownload(localPath)) {
+                URL source = new URL(npmRepositoryURL + remotePath);
+                try {
+                    proxyService.fetch(source, new File(cacheFolder, localPath));
+                } catch (Exception e) {
+                    if (staticHandler.canHandle(localPath)) {
+                        log.warn("Failed to download " + source + " but it's not a huge problem as the local cached copy can be used. Error was: " + e.getMessage());
+                        staticHandler.streamFileToResponse(localPath, response);
+                        return;
+                    } else {
+                        throw e;
+                    }
 
+                }
             }
         }
 
