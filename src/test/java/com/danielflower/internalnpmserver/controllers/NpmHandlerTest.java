@@ -70,6 +70,11 @@ public class NpmHandlerTest {
         runJsonRenameTest("colors/0.6.001");
     }
 
+    @Test
+    public void usesJSONAsTheFileExtensionOfAPIRequestsForNamesWithDots() throws Exception {
+        runJsonRenameTest("underscore.string");
+    }
+
     private void runJsonRenameTest(final String path) throws Exception {
         final String expectedLocalPath = "/" + path + ".json";
         context.checking(new Expectations() {{

@@ -4,7 +4,6 @@ import com.danielflower.internalnpmserver.services.FileDownloader;
 import com.danielflower.internalnpmserver.services.LockMap;
 import com.danielflower.internalnpmserver.services.RemoteDownloadPolicy;
 import com.danielflower.internalnpmserver.webserver.RequestHandler;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
@@ -13,14 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class NpmHandler implements RequestHandler {
     private static final Logger log = LoggerFactory.getLogger(NpmHandler.class);
 
-
-    private static final Pattern extensionPattern = Pattern.compile("[A-Za-z]+");
 
     public static final String PREFIX = "/npm";
     private static LockMap<String> lockMap = new LockMap<String>();
@@ -48,7 +43,7 @@ public class NpmHandler implements RequestHandler {
     public void handle(Request request, Response response) throws Exception {
         String remotePath = request.getTarget().substring(PREFIX.length());
 
-        String localPath = getLocalPathTreatingExtensionlessFilesAsJSONFiles(remotePath);
+        String localPath = getLocalPathTreatingAPICallsAsJSONFiles(remotePath);
 
         synchronized (lockMap.get(localPath)) {
             if (remoteDownloadPolicy.shouldDownload(localPath)) {
@@ -73,12 +68,7 @@ public class NpmHandler implements RequestHandler {
         }
     }
 
-    private String getLocalPathTreatingExtensionlessFilesAsJSONFiles(String path) {
-        String ext = FilenameUtils.getExtension(path);
-        Matcher matcher = extensionPattern.matcher(ext);
-        if (!matcher.matches()) {
-            path += ".json";
-        }
-        return path;
+    private String getLocalPathTreatingAPICallsAsJSONFiles(String path) {
+        return (path.contains("/-/") ? path : path + ".json");
     }
 }
