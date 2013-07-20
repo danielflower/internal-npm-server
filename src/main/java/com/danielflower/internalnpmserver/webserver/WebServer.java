@@ -51,8 +51,10 @@ public class WebServer {
     public static WebServer createWebServer(Config config) {
 
         FileDownloader downloader =
-                new PackageReWritingFileDownloader(
-                new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), config.getNpmEndPoint().toString());
+                new GitHubDependencyInterceptingFileDownloader(config.getNpmCacheFolder(),
+                        new PackageReWritingFileDownloader(
+                                new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), config.getNpmEndPoint().toString())
+                );
 
         StaticHandlerImpl npmCacheStaticHandler = new StaticHandlerImpl(config.getNpmCacheFolder());
         RemoteDownloadPolicy remoteDownloadPolicy = new ReDownloadCachedJSONFilesPolicy(npmCacheStaticHandler);
