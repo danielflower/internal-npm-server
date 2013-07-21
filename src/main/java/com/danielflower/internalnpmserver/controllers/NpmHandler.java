@@ -2,6 +2,7 @@ package com.danielflower.internalnpmserver.controllers;
 
 import com.danielflower.internalnpmserver.services.FileDownloader;
 import com.danielflower.internalnpmserver.services.LockMap;
+import com.danielflower.internalnpmserver.services.ModuleRewriterException;
 import com.danielflower.internalnpmserver.services.RemoteDownloadPolicy;
 import com.danielflower.internalnpmserver.webserver.RequestHandler;
 import org.apache.commons.lang.StringUtils;
@@ -50,6 +51,8 @@ public class NpmHandler implements RequestHandler {
                 URL source = new URL(npmRepositoryURL + remotePath);
                 try {
                     proxyService.fetch(source, new File(cacheFolder, localPath));
+                } catch (ModuleRewriterException mre) {
+                    log.warn(mre.getMessage(), mre);
                 } catch (Exception e) {
                     if (staticHandler.canHandle(localPath)) {
                         log.warn("Failed to download " + source + " but it's not a huge problem as the local cached copy can be used. Error was: " + e.getMessage());

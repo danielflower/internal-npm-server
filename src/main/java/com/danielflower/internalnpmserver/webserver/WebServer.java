@@ -54,6 +54,7 @@ public class WebServer {
                 new GitHubDependencyInterceptingFileDownloader(config.getNpmCacheFolder(),
                         new PackageReWritingFileDownloader(
                                 new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), config.getNpmEndPoint().toString())
+                        , new ModuleRewriterImpl()
                 );
 
         StaticHandlerImpl npmCacheStaticHandler = new StaticHandlerImpl(config.getNpmCacheFolder());

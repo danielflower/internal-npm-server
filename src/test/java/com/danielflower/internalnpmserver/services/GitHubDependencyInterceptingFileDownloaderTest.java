@@ -23,19 +23,8 @@ public class GitHubDependencyInterceptingFileDownloaderTest {
     private final Mockery context = new JUnit4Mockery();
     private final FileDownloader underlying = context.mock(FileDownloader.class);
     private final File npmCacheFolder = new File("target/" + UUID.randomUUID());
-    private final GitHubDependencyInterceptingFileDownloader downloader = new GitHubDependencyInterceptingFileDownloader(npmCacheFolder, underlying);
-
-    @Test
-    public void nonJSONRequestsArePassedToUnderlyingDownloadedUnmolested() throws IOException {
-        final URL source = new URL("http://example.org/whatever/1.0.0");
-        final File destination = new File("target/not-a-json-file.zip");
-
-        context.checking(new Expectations() {{
-            oneOf(underlying).fetch(source, destination);
-        }});
-
-        downloader.fetch(source, destination);
-    }
+    private final ModuleRewriter moduleRewriter = context.mock(ModuleRewriter.class);
+    private final GitHubDependencyInterceptingFileDownloader downloader = new GitHubDependencyInterceptingFileDownloader(npmCacheFolder, underlying, moduleRewriter);
 
     @Test
     public void gitHubDependenciesAreDownloadedAndReWrittenAsNormalDependencies() throws IOException {
@@ -47,11 +36,16 @@ public class GitHubDependencyInterceptingFileDownloaderTest {
             oneOf(underlying).fetch(source, destination);
 
             // recursively
-            oneOf(underlying).fetch(new URL("http://github.com/jsdoc3/jsdoc/tarball/v3.2.0"), new File(npmCacheFolder, "jsdoc3/-/jsdoc3-v3.2.0.tgz"));
-            oneOf(underlying).fetch(new URL("http://github.com/terryweiss/docstrap/tarball/master"), new File(npmCacheFolder, "docstrap/-/docstrap-master.tgz"));
-            oneOf(underlying).fetch(new URL("http://github.com/dominictarr/crypto-browserify/tarball/95c5d505"), new File(npmCacheFolder, "crypto-browserify/-/crypto-browserify-95c5d505.tgz"));
-            oneOf(underlying).fetch(new URL("http://github.com/jsdoc3/markdown-js/tarball/master"), new File(npmCacheFolder, "markdown/-/markdown-master.tgz"));
-            oneOf(underlying).fetch(new URL("http://github.com/hegemonic/taffydb/tarball/1.0.1"), new File(npmCacheFolder, "taffydb/-/taffydb-1.0.1.tgz"));
+            oneOf(underlying).fetch(new URL("https://github.com/jsdoc3/jsdoc/tarball/v3.2.0"), new File(npmCacheFolder, "jsdoc3/-/jsdoc3-v3.2.0.tgz"));
+            oneOf(moduleRewriter).rewriteModule(new File(npmCacheFolder, "jsdoc3/-/jsdoc3-v3.2.0.tgz"));
+            oneOf(underlying).fetch(new URL("https://github.com/terryweiss/docstrap/tarball/master"), new File(npmCacheFolder, "docstrap/-/docstrap-master.tgz"));
+            oneOf(moduleRewriter).rewriteModule(new File(npmCacheFolder, "docstrap/-/docstrap-master.tgz"));
+            oneOf(underlying).fetch(new URL("https://github.com/dominictarr/crypto-browserify/tarball/95c5d505"), new File(npmCacheFolder, "crypto-browserify/-/crypto-browserify-95c5d505.tgz"));
+            oneOf(moduleRewriter).rewriteModule(new File(npmCacheFolder, "crypto-browserify/-/crypto-browserify-95c5d505.tgz"));
+            oneOf(underlying).fetch(new URL("https://github.com/jsdoc3/markdown-js/tarball/master"), new File(npmCacheFolder, "markdown/-/markdown-master.tgz"));
+            oneOf(moduleRewriter).rewriteModule(new File(npmCacheFolder, "markdown/-/markdown-master.tgz"));
+            oneOf(underlying).fetch(new URL("https://github.com/hegemonic/taffydb/tarball/1.0.1"), new File(npmCacheFolder, "taffydb/-/taffydb-1.0.1.tgz"));
+            oneOf(moduleRewriter).rewriteModule(new File(npmCacheFolder, "taffydb/-/taffydb-1.0.1.tgz"));
         }});
 
         downloader.fetch(source, destination);
@@ -74,6 +68,33 @@ public class GitHubDependencyInterceptingFileDownloaderTest {
         File target = new File("target");
         FileUtils.copyFileToDirectory(jsonFile, target);
         return new File(target, "/packageWithGitHubDependencies.json");
+    }
+
+    @Test
+    public void packagesAreReWrittenIfDownloadedForFirstTime() throws IOException {
+        final URL source = new URL("http://registry.npmjs.org/grunt-jsdoc/-/grunt-jsdoc-0.4.0.tgz");
+        final File destination = new File(npmCacheFolder, "grunt-jsdoc/-/jsdoc3-v3.2.0.tgz");
+
+        context.checking(new Expectations() {{
+            // the first one
+            oneOf(underlying).fetch(source, destination);
+            oneOf(moduleRewriter).rewriteModule(destination);
+        }});
+        downloader.fetch(source, destination);
+    }
+
+    @Test
+    public void packagesAreNotReWrittenIfAlreadyDownloaded() throws IOException {
+        final URL source = new URL("http://registry.npmjs.org/grunt-jsdoc/-/grunt-jsdoc-0.4.0.tgz");
+        final File destination = new File(npmCacheFolder, "grunt-jsdoc/-/jsdoc3-cfff8dd035ad376892139192c03718ce2dcc20f0.tgz");
+        FileUtils.copyFile(new File("src/test/resources/samplecache/jsdoc/-/jsdoc3-cfff8dd035ad376892139192c03718ce2dcc20f0.tgz"), destination);
+
+        context.checking(new Expectations() {{
+            // the first one
+            oneOf(underlying).fetch(source, destination);
+            never(moduleRewriter);
+        }});
+        downloader.fetch(source, destination);
     }
 
 }

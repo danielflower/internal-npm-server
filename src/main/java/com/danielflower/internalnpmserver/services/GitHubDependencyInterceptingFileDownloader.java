@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,77 +19,63 @@ public class GitHubDependencyInterceptingFileDownloader implements FileDownloade
 
     private final FileDownloader underlying;
     private final File npmCacheFolder;
-    private final Pattern gitHubPattern = Pattern.compile(".*\"([A-Za-z0-9._-]+)\"\\s*:\\s*\"(git\\+https://github\\.com/([A-Za-z0-9_-]+)/([A-Za-z0-9_\\-]+)(\\.git)?(#)?([A-Za-z0-9._-]*))\".*");
+    private final ModuleRewriter moduleRewriter;
+    private static final Pattern gitHubPattern = Pattern.compile(".*\"([A-Za-z0-9._-]+)\"\\s*:\\s*\"(git\\+https://github\\.com/([A-Za-z0-9_-]+)/([A-Za-z0-9_\\-]+)(\\.git)?(#)?([A-Za-z0-9._-]*))\".*");
 
-    public GitHubDependencyInterceptingFileDownloader(File npmCacheFolder, FileDownloader underlying) {
+    public GitHubDependencyInterceptingFileDownloader(File npmCacheFolder, FileDownloader underlying, ModuleRewriter moduleRewriter) {
         this.underlying = underlying;
         this.npmCacheFolder = npmCacheFolder;
+        this.moduleRewriter = moduleRewriter;
     }
 
     @Override
     public void fetch(URL source, File destination) throws IOException {
+        boolean didExist = destination.isFile();
         underlying.fetch(source, destination);
 
+
         if (FilenameUtils.getExtension(destination.getName()).equalsIgnoreCase("json")) {
-            String contents = FileUtils.readFileToString(destination);
-            if (contents.contains("git+https://github.com/")) {
-                Matcher matcher = gitHubPattern.matcher(contents);
-                List<Dependency> dependencies = new ArrayList<Dependency>();
-                while (matcher.find()) {
-                    Dependency dep = new Dependency();
-                    dep.npmModuleName = matcher.group(1);
-                    dep.gitHubAuthor = matcher.group(3);
-                    dep.gitHubRepoName = matcher.group(4);
-                    dep.gitRef = StringUtils.isBlank(matcher.group(7)) ? "master" : matcher.group(7);
-                    dep.fullDependencyReference = matcher.group(2);
-                    dependencies.add(dep);
+            List<Dependency> dependencies = updateDependenciesInFile(destination);
+            for (Dependency dependency : dependencies) {
+                String localPath = dependency.npmModuleName + "/-/" + dependency.npmModuleName + "-" + dependency.gitRef + ".tgz";
+                File depDestination = new File(npmCacheFolder, localPath);
+                if (!depDestination.isFile()) {
+                    URL tarballURL = dependency.getTarballURL();
+                    log.info("Will download " + tarballURL + " to " + depDestination);
+                    // assumption: this is the outer-most FileDownloader implementation
+                    fetch(tarballURL, depDestination);
                 }
-
-                for (Dependency dependency : dependencies) {
-                    log.info("Replacing GitHub dependency: " + dependency);
-                    contents = contents.replace(dependency.fullDependencyReference, dependency.gitRef);
-
-                    String localPath = dependency.npmModuleName + "/-/" + dependency.npmModuleName + "-" + dependency.gitRef + ".tgz";
-                    File depDestination = new File(npmCacheFolder, localPath);
-                    if (!depDestination.isFile()) {
-                        URL tarballURL = dependency.getTarballURL();
-                        log.info("Will download " + tarballURL + " to " + depDestination);
-                        // assumption: this is the outer-most FileDownloader implementation
-                        fetch(tarballURL, depDestination);
-                    }
-                }
-
-                FileUtils.write(destination, contents);
             }
+        } else if (!didExist) {
+            moduleRewriter.rewriteModule(destination);
         }
     }
 
-    private static class Dependency {
-        public String npmModuleName;
-        public String gitHubAuthor;
-        public String gitHubRepoName;
-        public String gitRef;
-        public String fullDependencyReference;
+    public static List<Dependency> updateDependenciesInFile(File destination) throws IOException {
+        List<Dependency> dependencies = new ArrayList<Dependency>();
 
-        @Override
-        public String toString() {
-            return "{" +
-                    "npmModuleName='" + npmModuleName + '\'' +
-                    ", gitHubAuthor='" + gitHubAuthor + '\'' +
-                    ", gitHubRepoName='" + gitHubRepoName + '\'' +
-                    ", gitRef='" + gitRef + '\'' +
-                    ", fullDependencyReference='" + fullDependencyReference + '\'' +
-                    '}';
-        }
+        String contents = FileUtils.readFileToString(destination);
+        if (contents.contains("git+https://github.com/")) {
+            Matcher matcher = gitHubPattern.matcher(contents);
 
-        public URL getTarballURL() {
-            String url = "http://github.com/" + gitHubAuthor + "/" + gitHubRepoName + "/tarball/" + gitRef;
-            try {
-                return new URL(url);
-            } catch (MalformedURLException e) {
-                log.error("Error making URL " + url + " for dependency " + this, e);
-                throw new RuntimeException(e);
+            while (matcher.find()) {
+                Dependency dep = new Dependency();
+                dep.npmModuleName = matcher.group(1);
+                dep.gitHubAuthor = matcher.group(3);
+                dep.gitHubRepoName = matcher.group(4);
+                dep.gitRef = StringUtils.isBlank(matcher.group(7)) ? "master" : matcher.group(7);
+                dep.fullDependencyReference = matcher.group(2);
+                dependencies.add(dep);
             }
+
+            for (Dependency dependency : dependencies) {
+                log.info("Replacing GitHub dependency: " + dependency);
+                contents = contents.replace(dependency.fullDependencyReference, dependency.gitRef);
+            }
+
+            FileUtils.write(destination, contents);
         }
+        return dependencies;
     }
+
 }

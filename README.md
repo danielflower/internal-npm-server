@@ -18,15 +18,20 @@ server on demand and caches them on your filesystem.
 Installation
 ------------
 
+### Download
+
+Download the .zip or .tar.gz from the [releases page](https://github.com/danielflower/internal-npm-server/releases).
+
 ### Install the server
 
-This is a Java application, so you just need Java 6 or later to run.
+This is a Java application, so you just need Java 6 or later to run. (You do NOT need nodejs nor git installed.)
 
 Extract the server to a new directory. Edit [config.properties](https://github.com/danielflower/internal-npm-server/blob/master/src/main/assembly/config.properties)
 to set the hostname of your computer, the port to run on, and the location to keep the cached NPM files in.
 If behind a proxy, you can set your proxy settings too.
 
-Windows: run.bat will run it. Ctrl+C to stop it. There is no windows service version currently.
+Windows: run.bat will run it as a console app. Ctrl+C to stop it. There is no windows service version currently.
+
 Linux: start.sh will start it in the background. Run stop.sh to stop it.
 
 ### Configure NPM on your development machines
