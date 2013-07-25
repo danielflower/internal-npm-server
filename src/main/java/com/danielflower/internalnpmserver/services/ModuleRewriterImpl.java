@@ -37,7 +37,7 @@ public class ModuleRewriterImpl implements ModuleRewriter {
         }
     }
 
-    private File getRootFolder(File workDir) {
+    private File getRootFolder(File workDir) throws IOException {
         File[] files = workDir.listFiles((FileFilter) DirectoryFileFilter.DIRECTORY);
         return files[0];
     }
@@ -51,8 +51,18 @@ public class ModuleRewriterImpl implements ModuleRewriter {
     }
 
     private void repackArchive(File original, File root) throws IOException {
+        File container = new File(root.getParentFile(), "packageParent/package");
+        container.mkdirs();
+        for (File file : root.listFiles()) {
+            if (file.isFile()) {
+                FileUtils.moveFileToDirectory(file, container, false);
+            } else {
+                FileUtils.moveDirectory(file, new File(container, file.getName()));
+            }
+        }
+
         Archiver archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP);
-        File archive = archiver.create(original.getName(), new File(original.getParentFile(), "output"), root);
+        File archive = archiver.create(original.getName(), new File(original.getParentFile(), "output"), container.getParentFile());
         FileUtils.moveFile(archive, original);
     }
 }

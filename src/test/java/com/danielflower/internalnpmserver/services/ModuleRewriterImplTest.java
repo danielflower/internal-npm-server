@@ -36,7 +36,7 @@ public class ModuleRewriterImplTest {
         Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
         File locationOfExtractFiles = new File(archive.getParentFile(), "actual");
         archiver.extract(archive, locationOfExtractFiles);
-        File packageFile = new File(locationOfExtractFiles, "package.json");
+        File packageFile = new File(locationOfExtractFiles, "package/package.json");
         assertThat(packageFile.isFile(), is(true));
 
         String contents = FileUtils.readFileToString(packageFile);

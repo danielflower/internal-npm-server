@@ -30,9 +30,10 @@ public class PackageReWritingFileDownloader implements FileDownloader {
 
         if (FilenameUtils.getExtension(destination.getName()).equalsIgnoreCase("json")) {
             String contents = FileUtils.readFileToString(destination);
-            if (contents.contains(externalHTTPNPMRegistry) || contents.contains(externalHTTPSNPMRegistry)) {
+            if (true || contents.contains(externalHTTPNPMRegistry) || contents.contains(externalHTTPSNPMRegistry)) {
                 contents = contents.replace(externalHTTPNPMRegistry, internalNPMRegistry);
                 contents = contents.replace(externalHTTPSNPMRegistry, internalNPMRegistry);
+                contents = contents.replaceAll("\"shasum\"", "\"originalshasum\"");
                 FileUtils.write(destination, contents);
             }
         }
