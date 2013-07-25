@@ -2,7 +2,7 @@ Internal NPM Server
 ===================
 
 This application allows you to run a local NPM server behind a firewall. It downloads modules from the central NPM
-server on demand and caches them on your filesystem.
+registry on demand and caches them on your filesystem.
 
 ### Why use an internal NPM server?
 
@@ -13,10 +13,15 @@ server on demand and caches them on your filesystem.
 ### Limitations
 
 * You cannot publish artifacts to your internal server. In fact, using this breaks npm publish.
+* Any dependencies pointing to GitHub or git repos will not be changed. Only use modules hosted in the official NPM registry if that's a problem.
 * This application has not been stress tested.
 
 Installation
 ------------
+
+### Download
+
+Download the .zip or .tar.gz from the [releases page](https://github.com/danielflower/internal-npm-server/releases).
 
 ### Install the server
 
@@ -26,7 +31,7 @@ Extract the server to a new directory. Edit [config.properties](https://github.c
 to set the hostname of your computer, the port to run on, and the location to keep the cached NPM files in.
 If behind a proxy, you can set your proxy settings too.
 
-Windows: run.bat will run it. Ctrl+C to stop it. There is no windows service version currently.
+Windows: run.bat will run it as a console app. Ctrl+C to stop it. There is no windows service version currently.
 Linux: start.sh will start it in the background. Run stop.sh to stop it.
 
 ### Configure NPM on your development machines
