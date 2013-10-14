@@ -55,7 +55,7 @@ public class WebServer {
                 new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), config.getNpmEndPoint().toString());
 
         StaticHandlerImpl npmCacheStaticHandler = new StaticHandlerImpl(config.getNpmCacheFolder());
-        RemoteDownloadPolicy remoteDownloadPolicy = new ReDownloadCachedJSONFilesPolicy(npmCacheStaticHandler);
+        RemoteDownloadPolicy remoteDownloadPolicy = new ReDownloadOldJSONFilesPolicy(npmCacheStaticHandler);
         RequestHandler[] handlers = new RequestHandler[]{
                 new HomepageHandler(httpViewRenderer, config),
                 new NpmHandler(downloader, npmCacheStaticHandler, config.getNpmRepositoryURL(), config.getNpmCacheFolder(), remoteDownloadPolicy),

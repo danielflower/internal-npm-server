@@ -15,6 +15,7 @@ import org.simpleframework.http.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStreamWriter;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -77,6 +78,14 @@ public class StaticHandlerImplTest {
 		}});
 		staticHandler.handle(request, response);
 		assertThat(responseBytes.toByteArray(), is(equalTo(FileUtils.readFileToByteArray(sampleFile))));
+	}
+
+	@Test
+	public void returnsTheFileSystemsLastModifiedTimeForLocalFiles() {
+		File sampleFile = new File("src/main/resources/webroot/foundation.html");
+		Date now = new Date();
+		sampleFile.setLastModified(now.getTime());
+		assertThat(staticHandler.dateCreated("/foundation.html"), is(equalTo(now)));
 	}
 
 	@Test

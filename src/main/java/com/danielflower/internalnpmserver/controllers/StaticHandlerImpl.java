@@ -7,6 +7,7 @@ import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 
 import java.io.*;
+import java.util.Date;
 
 public class StaticHandlerImpl implements StaticHandler, RequestHandler {
 
@@ -63,4 +64,10 @@ public class StaticHandlerImpl implements StaticHandler, RequestHandler {
         IOUtils.closeQuietly(in);
         IOUtils.closeQuietly(out);
     }
+
+	@Override
+	public Date dateCreated(String path) {
+		final File localFile = new File(webroot, path);
+		return new Date(localFile.lastModified());
+	}
 }
