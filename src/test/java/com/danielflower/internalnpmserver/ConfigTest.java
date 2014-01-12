@@ -12,35 +12,37 @@ import static org.junit.Assert.assertThat;
 
 public class ConfigTest {
 
-    private final File npmCacheFolder = new File("target/whatever");
+	private final File npmCacheFolder = new File("target/whatever");
+	private final File internalRepoFolder = new File("target/whatever2");
     private String webServerHostName = "localhost";
 
     @Test(expected = RuntimeException.class)
     public void httpsIsNotAllowedForNPMRegistryURL() {
-        new Config(1000, npmCacheFolder, "https://www.blah.com", webServerHostName, null);
+        new Config(1000, internalRepoFolder, npmCacheFolder, "https://www.blah.com", webServerHostName, null);
     }
 
     @Test(expected = RuntimeException.class)
     public void schemeNameMustBeIncluded() {
-        new Config(1000, npmCacheFolder, "www.blah.com", webServerHostName, null);
+        new Config(1000, internalRepoFolder, npmCacheFolder, "www.blah.com", webServerHostName, null);
     }
 
     @Test
     public void httpSchemeIsAcceptable() {
-        new Config(1000, npmCacheFolder, "http://registry.npmjs.org/", webServerHostName, null);
+        new Config(1000, internalRepoFolder, npmCacheFolder, "http://registry.npmjs.org/", webServerHostName, null);
     }
 
     @Test
     public void usesTheHostNameAndPortToCreateTheNPMURL() {
-        Config config = new Config(1000, npmCacheFolder, "http://registry.npmjs.org/", webServerHostName, null);
+        Config config = new Config(1000, internalRepoFolder, npmCacheFolder, "http://registry.npmjs.org/", webServerHostName, null);
         assertThat(config.getNpmEndPoint().toString(), equalTo("http://localhost:1000/npm/"));
     }
 
     @Test
-    public void configCanBeReadyFromPropertiesFile() {
+    public void configCanBeReadFromPropertiesFile() {
         Config config = Config.fromFile("src/test/resources/configs/sample-config.properties");
         assertThat(config.getPort(), equalTo(1234));
-        assertThat(config.getNpmCacheFolder(), equalTo(new File("target/some/folder")));
+	    assertThat(config.getNpmCacheFolder(), equalTo(new File("target/some/folder")));
+	    assertThat(config.getInternalRepoFolder(), equalTo(new File("target/another/folder")));
         assertThat(config.getNpmRepositoryURL(), equalTo("http://registry.npmjs.org/"));
         assertThat(config.getWebServerHostName(), equalTo("localhost"));
     }

@@ -26,7 +26,7 @@ public class HomepageHandlerTest {
     private final Request request = context.mock(Request.class);
     private final Response response = context.mock(Response.class);
     private final HttpViewRenderer viewRenderer = context.mock(HttpViewRenderer.class);
-    private final Config config = new Config(8080, new File("target"), "http://some.registry", "our.company.com", Proxy.NO_PROXY);
+    private final Config config = new Config(8080, null, new File("target"), "http://some.registry", "our.company.com", Proxy.NO_PROXY);
     private final HomepageHandler homepageHandler = new HomepageHandler(viewRenderer, config);
 
     @Test

@@ -17,24 +17,36 @@ import static org.junit.Assert.assertThat;
 public class ReDownloadOldJSONFilesPolicyTest {
 
     private final Mockery context = new JUnit4Mockery();
-    private final StaticHandler staticHandler = context.mock(StaticHandler.class);
+	private final StaticHandler internalRepositoryHolderHandler = context.mock(StaticHandler.class, "internalRepositoryHolderHandler");
+	private final StaticHandler remoteCacheHandler = context.mock(StaticHandler.class, "remoteCacheHandler");
     private final String pathToJSON = "/some-package/1.2.3.json";
     private final String pathToNonJSON = "/some-package/_/some-package.1.2.3.tgz";
-    private final ReDownloadOldJSONFilesPolicy policy = new ReDownloadOldJSONFilesPolicy(staticHandler);
+    private final ReDownloadOldJSONFilesPolicy policy = new ReDownloadOldJSONFilesPolicy(internalRepositoryHolderHandler, remoteCacheHandler);
 
-    @Test
-    public void ifTheStaticHandlerCannotHandleItThenAlwaysDownload() throws Exception {
-        final String arbitraryPath = "/blah/man";
-        context.checking(new Expectations() {{
-            oneOf(staticHandler).canHandle(arbitraryPath); will(returnValue(false));
-        }});
-        assertThat(policy.shouldDownload(arbitraryPath), is(true));
-    }
+	@Test
+	public void ifItIsInTheInternalRepositoryThenNeverDownload() throws Exception {
+		final String arbitraryPath = "/blah/man";
+		context.checking(new Expectations() {{
+			oneOf(internalRepositoryHolderHandler).canHandle(arbitraryPath); will(returnValue(true));
+		}});
+		assertThat(policy.shouldDownload(arbitraryPath), is(false));
+	}
+
+	@Test
+	public void ifTheNeitherHandlerCannotHandleItThenAlwaysDownload() throws Exception {
+		final String arbitraryPath = "/blah/man";
+		context.checking(new Expectations() {{
+			oneOf(internalRepositoryHolderHandler).canHandle(arbitraryPath); will(returnValue(false));
+			oneOf(remoteCacheHandler).canHandle(arbitraryPath); will(returnValue(false));
+		}});
+		assertThat(policy.shouldDownload(arbitraryPath), is(true));
+	}
 
     @Test
     public void ifItIsNotAJSONFileAndItAlreadyExistsThenDoNotDownloadAsTheyShouldBeImmutable() {
         context.checking(new Expectations() {{
-            oneOf(staticHandler).canHandle(pathToNonJSON);will(returnValue(true));
+	        oneOf(internalRepositoryHolderHandler).canHandle(pathToNonJSON); will(returnValue(false));
+            oneOf(remoteCacheHandler).canHandle(pathToNonJSON);will(returnValue(true));
         }});
         assertThat(policy.shouldDownload(pathToNonJSON), is(false));
     }
@@ -43,8 +55,9 @@ public class ReDownloadOldJSONFilesPolicyTest {
 	public void ifItIsAJSONFileAndItIsOlderThanADayThenReDownloadIt() {
 		final Date twentyFiveHoursAgo = new Date(System.currentTimeMillis() - 25 * 60 * 60 * 1000);
 		context.checking(new Expectations() {{
-			oneOf(staticHandler).canHandle(pathToJSON);will(returnValue(true));
-			oneOf(staticHandler).dateCreated(pathToJSON);will(returnValue(twentyFiveHoursAgo));
+			oneOf(internalRepositoryHolderHandler).canHandle(pathToJSON); will(returnValue(false));
+			oneOf(remoteCacheHandler).canHandle(pathToJSON);will(returnValue(true));
+			oneOf(remoteCacheHandler).dateCreated(pathToJSON);will(returnValue(twentyFiveHoursAgo));
 		}});
 		assertThat(policy.shouldDownload(pathToJSON), is(true));
 	}
@@ -53,8 +66,9 @@ public class ReDownloadOldJSONFilesPolicyTest {
 	public void ifItIsAJSONFileAndItIsNewerThanADayThenReDownloadIt() {
 		final Date twentyThreeHoursAgo = new Date(System.currentTimeMillis() - 23 * 60 * 60 * 1000);
 		context.checking(new Expectations() {{
-			oneOf(staticHandler).canHandle(pathToJSON);will(returnValue(true));
-			oneOf(staticHandler).dateCreated(pathToJSON);will(returnValue(twentyThreeHoursAgo));
+			oneOf(internalRepositoryHolderHandler).canHandle(pathToJSON); will(returnValue(false));
+			oneOf(remoteCacheHandler).canHandle(pathToJSON);will(returnValue(true));
+			oneOf(remoteCacheHandler).dateCreated(pathToJSON);will(returnValue(twentyThreeHoursAgo));
 		}});
 		assertThat(policy.shouldDownload(pathToJSON), is(false));
 	}

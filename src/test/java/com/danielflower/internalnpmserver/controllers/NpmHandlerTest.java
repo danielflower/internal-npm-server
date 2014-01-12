@@ -26,9 +26,11 @@ public class NpmHandlerTest {
     private final File cacheFolder = new File("target/npmcachetest/" + UUID.randomUUID() + "/");
     private final Mockery context = new JUnit4Mockery();
     private final FileDownloader proxyService = context.mock(FileDownloader.class);
-    private final StaticHandler staticHandler = context.mock(StaticHandler.class);
+	private final StaticHandler staticHandler1 = context.mock(StaticHandler.class, "handler1");
+	private final StaticHandler staticHandler2 = context.mock(StaticHandler.class, "handler2");
+	private final StaticHandler staticHandler3 = context.mock(StaticHandler.class, "handler3");
     private final RemoteDownloadPolicy remoteDownloadPolicy = context.mock(RemoteDownloadPolicy.class);
-    private final NpmHandler handler = new NpmHandler(proxyService, staticHandler, "http://registry.npmjs.org/", cacheFolder, remoteDownloadPolicy);
+    private final NpmHandler handler = new NpmHandler(proxyService, new StaticHandler[] { staticHandler1, staticHandler2, staticHandler3 }, "http://registry.npmjs.org/", cacheFolder, remoteDownloadPolicy);
     private final Response response = context.mock(Response.class);
     private final Request request = context.mock(Request.class);
 
@@ -43,17 +45,20 @@ public class NpmHandlerTest {
         assertThat(handler.canHandle("/anythingelse"), is(false));
     }
 
-    @Test
-    public void usesTheStaticHandlerToStreamResponsesWhenItIsAlreadyCached() throws Exception {
-        context.checking(new Expectations() {{
-            allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
-            allowing(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz"); will(returnValue(true));
+	@Test
+	public void usesTheFirstAppropriateStaticHandlerToStreamResponsesWhenItIsAlreadyCached() throws Exception {
+		context.checking(new Expectations() {{
+			allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
+			allowing(staticHandler1).canHandle("/commander/-/commander-0.6.1.tgz"); will(returnValue(false));
+			allowing(staticHandler2).canHandle("/commander/-/commander-0.6.1.tgz"); will(returnValue(true));
+			never(staticHandler3);
 
-            oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz"); will(returnValue(false));
-            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
-        }});
-        handler.handle(request, response);
-    }
+			oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz"); will(returnValue(false));
+			oneOf(staticHandler2).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
+		}});
+		handler.handle(request, response);
+	}
+
 
     @Test
     public void usesJSONAsTheFileExtensionOfAPIRequests() throws Exception {
@@ -80,9 +85,9 @@ public class NpmHandlerTest {
         context.checking(new Expectations() {{
             allowing(request).getTarget();will(returnValue("/npm/" + path));
             allowing(remoteDownloadPolicy).shouldDownload(expectedLocalPath); will(returnValue(false));
-            allowing(staticHandler).canHandle(expectedLocalPath);will(returnValue(true));
+            allowing(staticHandler1).canHandle(expectedLocalPath);will(returnValue(true));
 
-            oneOf(staticHandler).streamFileToResponse(expectedLocalPath, response);
+            oneOf(staticHandler1).streamFileToResponse(expectedLocalPath, response);
         }});
         handler.handle(request, response);
     }
@@ -94,8 +99,8 @@ public class NpmHandlerTest {
 
             oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
             oneOf(proxyService).fetch(new URL("http://registry.npmjs.org/commander/-/commander-0.6.1.tgz"), new File(cacheFolder, "commander/-/commander-0.6.1.tgz"));
-            oneOf(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
-            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
+            oneOf(staticHandler1).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
+            oneOf(staticHandler1).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
         }});
         handler.handle(request, response);
     }
@@ -106,11 +111,11 @@ public class NpmHandlerTest {
             allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
 
             oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
-            oneOf(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
+            oneOf(staticHandler1).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
 
             oneOf(proxyService).fetch(with(any(URL.class)), with(any(File.class))); will(throwException(new RuntimeException("Simulated exception while making web request")));
 
-            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
+            oneOf(staticHandler1).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
         }});
         handler.handle(request, response);
     }
@@ -120,7 +125,9 @@ public class NpmHandlerTest {
         context.checking(new Expectations() {{
             allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
             oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
-            oneOf(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(false));
+	        oneOf(staticHandler1).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(false));
+	        oneOf(staticHandler2).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(false));
+	        oneOf(staticHandler3).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(false));
             oneOf(proxyService).fetch(with(any(URL.class)), with(any(File.class))); will(throwException(new IOException("Simulated exception while making web request")));
         }});
         handler.handle(request, response);

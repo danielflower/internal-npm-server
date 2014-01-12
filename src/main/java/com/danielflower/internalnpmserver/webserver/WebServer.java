@@ -2,9 +2,7 @@ package com.danielflower.internalnpmserver.webserver;
 
 import com.danielflower.internalnpmserver.App;
 import com.danielflower.internalnpmserver.Config;
-import com.danielflower.internalnpmserver.controllers.HomepageHandler;
-import com.danielflower.internalnpmserver.controllers.NpmHandler;
-import com.danielflower.internalnpmserver.controllers.StaticHandlerImpl;
+import com.danielflower.internalnpmserver.controllers.*;
 import com.danielflower.internalnpmserver.rendering.HttpViewRenderer;
 import com.danielflower.internalnpmserver.rendering.NonCachableHttpViewRenderer;
 import com.danielflower.internalnpmserver.rendering.VelocityViewRenderer;
@@ -54,19 +52,27 @@ public class WebServer {
                 new PackageReWritingFileDownloader(
                 new FileDownloaderImpl(config.getProxy()), config.getNpmRepositoryURL(), config.getNpmEndPoint().toString());
 
-        StaticHandlerImpl npmCacheStaticHandler = new StaticHandlerImpl(config.getNpmCacheFolder());
-        RemoteDownloadPolicy remoteDownloadPolicy = new ReDownloadOldJSONFilesPolicy(npmCacheStaticHandler);
+	    File npmCacheFolder = config.getNpmCacheFolder();
+	    StaticHandler npmCacheStaticHandler = getStaticHandler(npmCacheFolder);
+	    StaticHandler internalRepoStaticHandler = getStaticHandler(config.getInternalRepoFolder());
+        RemoteDownloadPolicy remoteDownloadPolicy = new ReDownloadOldJSONFilesPolicy(internalRepoStaticHandler, npmCacheStaticHandler);
         RequestHandler[] handlers = new RequestHandler[]{
                 new HomepageHandler(httpViewRenderer, config),
-                new NpmHandler(downloader, npmCacheStaticHandler, config.getNpmRepositoryURL(), config.getNpmCacheFolder(), remoteDownloadPolicy),
-                new StaticHandlerImpl(STATIC_ROOT)
+                new NpmHandler(downloader, new StaticHandler[] { internalRepoStaticHandler, npmCacheStaticHandler }, config.getNpmRepositoryURL(), npmCacheFolder, remoteDownloadPolicy),
+		        (RequestHandler) getStaticHandler(STATIC_ROOT)
         };
         RequestRouter router = new RequestRouter(handlers);
         ErrorHandlingWebContainer errorHandler = new ErrorHandlingWebContainer(router);
         return new WebServer(new LoggingWebContainer(errorHandler), config.getPort(), config.getWebServerHostName());
     }
 
-    public void start() throws IOException {
+	private static StaticHandler getStaticHandler(File resourceRoot) {
+		return resourceRoot == null
+				? new NullStaticHandler()
+				: new StaticHandlerImpl(resourceRoot);
+	}
+
+	public void start() throws IOException {
         this.connection = new SocketConnection(new ContainerServer(webContainer));
         InetSocketAddress address = new InetSocketAddress(port);
         connection.connect(address);

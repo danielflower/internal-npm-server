@@ -15,12 +15,13 @@ public class Config {
     private static final Logger log = LoggerFactory.getLogger(Config.class);
 
     private final int port;
-    private final File npmCacheFolder;
+	private final File internalRepoFolder;
+	private final File npmCacheFolder;
     private final String npmRepositoryURL;
     private final String webServerHostName;
     private final Proxy proxy;
 
-    public Config(int port, File npmCacheFolder, String npmRepositoryURL, String webServerHostName, Proxy proxy) {
+    public Config(int port, File internalRepoFolder, File npmCacheFolder, String npmRepositoryURL, String webServerHostName, Proxy proxy) {
         this.webServerHostName = webServerHostName;
         this.proxy = proxy;
         if (!npmRepositoryURL.startsWith("http://")) {
@@ -30,6 +31,7 @@ public class Config {
 
         this.port = port;
         this.npmCacheFolder = npmCacheFolder;
+	    this.internalRepoFolder = internalRepoFolder;
         this.npmRepositoryURL = npmRepositoryURL;
     }
 
@@ -37,9 +39,13 @@ public class Config {
         return port;
     }
 
-    public File getNpmCacheFolder() {
-        return npmCacheFolder;
-    }
+	public File getNpmCacheFolder() {
+		return npmCacheFolder;
+	}
+
+	public File getInternalRepoFolder() {
+		return internalRepoFolder;
+	}
 
     public String getNpmRepositoryURL() {
         return npmRepositoryURL;
@@ -64,21 +70,40 @@ public class Config {
         }
 
         int port = Integer.parseInt(props.getProperty("port"));
-        File cacheFolder = new File(props.getProperty("cacheFolder"));
+	    File cacheFolder = getCacheFolder(props);
+	    File internalRepoFolder = getInternalRepoFolder(props);
 
-        if (cacheFolder.mkdirs()) {
-            log.info("Created for NPM modules cache: " + getCanonicalPath(cacheFolder));
-        } else {
-            log.info("Using the following folder to store NPM modules: " + getCanonicalPath(cacheFolder));
-        }
-
-        String npmURL = props.getProperty("npmRegistryURL");
+	    String npmURL = props.getProperty("npmRegistryURL");
         String webServerHostName = props.getProperty("webServerHostName");
         Proxy proxy = getProxy(props);
-        return new Config(port, cacheFolder, npmURL, webServerHostName, proxy);
+        return new Config(port, internalRepoFolder, cacheFolder, npmURL, webServerHostName, proxy);
     }
 
-    private static Proxy getProxy(Properties props) {
+	private static File getInternalRepoFolder(Properties props) {
+		File internalRepoFolder = null;
+		String repoFolderPath = props.getProperty("internalRepoFolder");
+		if (repoFolderPath != null && repoFolderPath.length() > 0) {
+		    internalRepoFolder = new File(repoFolderPath);
+			if (internalRepoFolder.mkdirs()) {
+				log.info("Created for internal repo: " + getCanonicalPath(internalRepoFolder));
+			} else {
+				log.info("Using the following folder to store the internally published artifacts: " + getCanonicalPath(internalRepoFolder));
+			}
+		}
+		return internalRepoFolder;
+	}
+
+	private static File getCacheFolder(Properties props) {
+		File cacheFolder = new File(props.getProperty("cacheFolder"));
+		if (cacheFolder.mkdirs()) {
+		    log.info("Created for NPM modules cache: " + getCanonicalPath(cacheFolder));
+		} else {
+		    log.info("Using the following folder to store NPM modules: " + getCanonicalPath(cacheFolder));
+		}
+		return cacheFolder;
+	}
+
+	private static Proxy getProxy(Properties props) {
         String proxyHost = props.getProperty("proxyHost");
         if (StringUtils.isBlank(proxyHost)) {
             return Proxy.NO_PROXY;

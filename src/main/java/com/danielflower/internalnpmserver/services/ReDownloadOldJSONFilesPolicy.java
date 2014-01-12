@@ -7,15 +7,20 @@ import java.util.Date;
 
 public class ReDownloadOldJSONFilesPolicy implements RemoteDownloadPolicy {
 	private static final long TWENTY_FOUR_HOURS_IN_MILLIS = 24 * 60 * 60 * 1000;
-    private final StaticHandler staticHandler;
+	private final StaticHandler internalRepositoryHolderHandler;
+	private final StaticHandler remoteCacheHandler;
 
-    public ReDownloadOldJSONFilesPolicy(StaticHandler staticHandler) {
-        this.staticHandler = staticHandler;
-    }
+	public ReDownloadOldJSONFilesPolicy(StaticHandler internalRepositoryHolderHandler, StaticHandler remoteCacheHandler) {
+		this.internalRepositoryHolderHandler = internalRepositoryHolderHandler;
+		this.remoteCacheHandler = remoteCacheHandler;
+	}
 
 	@Override
 	public boolean shouldDownload(String localPath) {
-		boolean existsLocally = staticHandler.canHandle(localPath);
+		if (internalRepositoryHolderHandler.canHandle(localPath)) {
+			return false;
+		}
+		boolean existsLocally = remoteCacheHandler.canHandle(localPath);
 		boolean isJSONFile = FilenameUtils.getExtension(localPath).equalsIgnoreCase("json");
 		if (existsLocally && !isJSONFile) {
 			return false;
@@ -23,7 +28,7 @@ public class ReDownloadOldJSONFilesPolicy implements RemoteDownloadPolicy {
 		if (!existsLocally) {
 			return true;
 		}
-		Date fileModifiedDate = staticHandler.dateCreated(localPath);
+		Date fileModifiedDate = remoteCacheHandler.dateCreated(localPath);
 		long age = System.currentTimeMillis() - fileModifiedDate.getTime();
 		return age > TWENTY_FOUR_HOURS_IN_MILLIS;
 	}

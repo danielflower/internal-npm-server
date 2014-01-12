@@ -2,7 +2,9 @@ Internal NPM Server
 ===================
 
 This application allows you to run a local NPM server behind a firewall. It downloads modules from the central NPM
-registry on demand and caches them on your filesystem.
+registry on demand and caches them on your filesystem. The main use case is where your NPM server can access the
+Internet but development machines cannot. It also allows you to build your own NPM library, having only packages
+explicitly published to it.
 
 ### Why use an internal NPM server?
 
@@ -13,8 +15,8 @@ registry on demand and caches them on your filesystem.
 ### Limitations
 
 * You cannot publish artifacts to your internal server. In fact, using this breaks npm publish.
-* Any dependencies pointing to GitHub or git repos will not be changed. Only use modules hosted in the official NPM registry if that's a problem.
-* This application has not been stress tested.
+* Any dependencies pointing to GitHub or other git repos will still download using Git. In certain environments due to proxies,
+this means some packages cannot be used. Such packages can be manually uploaded to the internal NPM server though.
 
 Installation
 ------------

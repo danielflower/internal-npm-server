@@ -20,7 +20,7 @@ public class WebServerTest {
 
     @Test
     public void serverCanBeStartedAndStoppedMultipleTimes() throws Exception {
-        Config config = new Config(port, new File("target/npmcache"), "http://registry.npmjs.org/", "localhost", null);
+        Config config = new Config(port, null, new File("target/npmcache"), "http://registry.npmjs.org/", "localhost", null);
         WebServer app = WebServer.createWebServer(config);
 
         assertRequestsCannotBeMade();
