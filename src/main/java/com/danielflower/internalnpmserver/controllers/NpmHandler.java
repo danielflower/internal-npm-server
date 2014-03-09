@@ -44,6 +44,7 @@ public class NpmHandler implements RequestHandler {
         String remotePath = request.getTarget().substring(PREFIX.length());
 
         String localPath = getLocalPathTreatingAPICallsAsJSONFiles(remotePath);
+	    String etag = request.getValue("If-None-Match");
 
         synchronized (lockMap.get(localPath)) {
             if (remoteDownloadPolicy.shouldDownload(localPath)) {
@@ -53,7 +54,7 @@ public class NpmHandler implements RequestHandler {
                 } catch (Exception e) {
                     if (staticHandler.canHandle(localPath)) {
                         log.warn("Failed to download " + source + " but it's not a huge problem as the local cached copy can be used. Error was: " + e.getMessage());
-                        staticHandler.streamFileToResponse(localPath, response);
+                        staticHandler.streamFileToResponse(localPath, etag, response);
                         return;
                     } else {
                         throw e;
@@ -64,7 +65,7 @@ public class NpmHandler implements RequestHandler {
         }
 
         if (staticHandler.canHandle(localPath)) {
-            staticHandler.streamFileToResponse(localPath, response);
+            staticHandler.streamFileToResponse(localPath, etag, response);
         }
     }
 

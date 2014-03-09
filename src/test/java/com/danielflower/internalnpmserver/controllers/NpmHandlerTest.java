@@ -43,17 +43,31 @@ public class NpmHandlerTest {
         assertThat(handler.canHandle("/anythingelse"), is(false));
     }
 
-    @Test
-    public void usesTheStaticHandlerToStreamResponsesWhenItIsAlreadyCached() throws Exception {
-        context.checking(new Expectations() {{
-            allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
-            allowing(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz"); will(returnValue(true));
+	@Test
+	public void usesTheStaticHandlerToStreamResponsesWhenItIsAlreadyCached() throws Exception {
+		context.checking(new Expectations() {{
+			allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
+			allowing(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz"); will(returnValue(true));
+			allowing(request).getValue("If-None-Match"); will(returnValue(""));
 
-            oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz"); will(returnValue(false));
-            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
-        }});
-        handler.handle(request, response);
-    }
+			oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz"); will(returnValue(false));
+			oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", "", response);
+		}});
+		handler.handle(request, response);
+	}
+
+	@Test
+	public void passesTheETagFromTheRequestToTheHandler() throws Exception {
+		context.checking(new Expectations() {{
+			allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
+			allowing(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz"); will(returnValue(true));
+			allowing(request).getValue("If-None-Match"); will(returnValue("12345"));
+			allowing(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz"); will(returnValue(false));
+
+			oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", "12345", response);
+		}});
+		handler.handle(request, response);
+	}
 
     @Test
     public void usesJSONAsTheFileExtensionOfAPIRequests() throws Exception {
@@ -81,8 +95,9 @@ public class NpmHandlerTest {
             allowing(request).getTarget();will(returnValue("/npm/" + path));
             allowing(remoteDownloadPolicy).shouldDownload(expectedLocalPath); will(returnValue(false));
             allowing(staticHandler).canHandle(expectedLocalPath);will(returnValue(true));
+	        allowing(request).getValue("If-None-Match"); will(returnValue(""));
 
-            oneOf(staticHandler).streamFileToResponse(expectedLocalPath, response);
+            oneOf(staticHandler).streamFileToResponse(expectedLocalPath, "", response);
         }});
         handler.handle(request, response);
     }
@@ -91,11 +106,12 @@ public class NpmHandlerTest {
     public void downloadsFileBeforeSendingToStaticHandlerIfThePolicySaysTo() throws Exception {
         context.checking(new Expectations() {{
             allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
+	        allowing(request).getValue("If-None-Match"); will(returnValue(""));
 
             oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
             oneOf(proxyService).fetch(new URL("http://registry.npmjs.org/commander/-/commander-0.6.1.tgz"), new File(cacheFolder, "commander/-/commander-0.6.1.tgz"));
             oneOf(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
-            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
+            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", "", response);
         }});
         handler.handle(request, response);
     }
@@ -104,13 +120,14 @@ public class NpmHandlerTest {
     public void ifTheDownloadFailsThenTheStaticHandlerIsStillCalledIfThereIsACachedVersion() throws Exception {
         context.checking(new Expectations() {{
             allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
+	        allowing(request).getValue("If-None-Match"); will(returnValue(""));
 
             oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
             oneOf(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
 
             oneOf(proxyService).fetch(with(any(URL.class)), with(any(File.class))); will(throwException(new RuntimeException("Simulated exception while making web request")));
 
-            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", response);
+            oneOf(staticHandler).streamFileToResponse("/commander/-/commander-0.6.1.tgz", "", response);
         }});
         handler.handle(request, response);
     }
@@ -119,11 +136,15 @@ public class NpmHandlerTest {
     public void ifTheDownloadFailsAndThereIsNoCachedVersionThenTheExceptionIsThrownUnmolested() throws Exception {
         context.checking(new Expectations() {{
             allowing(request).getTarget(); will(returnValue("/npm/commander/-/commander-0.6.1.tgz"));
-            oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
+	        allowing(request).getValue("If-None-Match"); will(returnValue(""));
+
+	        oneOf(remoteDownloadPolicy).shouldDownload("/commander/-/commander-0.6.1.tgz");will(returnValue(true));
             oneOf(staticHandler).canHandle("/commander/-/commander-0.6.1.tgz");will(returnValue(false));
             oneOf(proxyService).fetch(with(any(URL.class)), with(any(File.class))); will(throwException(new IOException("Simulated exception while making web request")));
         }});
         handler.handle(request, response);
     }
+
+
 
 }

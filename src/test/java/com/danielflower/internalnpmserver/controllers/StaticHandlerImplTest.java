@@ -1,5 +1,6 @@
 package com.danielflower.internalnpmserver.controllers;
 
+import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.jmock.Expectations;
@@ -16,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStreamWriter;
 import java.util.Date;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -70,10 +72,12 @@ public class StaticHandlerImplTest {
 			allowing(request).getPath(); will(returnValue(path));
 			allowing(path).getPath(); will(returnValue("/foundation.html"));
 			allowing(response).getOutputStream(); will(returnValue(outputStream));
+			allowing(request).getValue("If-None-Match"); will(returnValue(""));
 
 			oneOf(response).setValue("Content-Type", "text/html");
 			oneOf(response).setDate(with("Date"), with(any(long.class)));
 			oneOf(response).setDate(with("Last-Modified"), with(any(long.class)));
+			oneOf(response).setValue(with("ETag"), with(any(String.class)));
 			oneOf(response).setValue("Cache-Control", "max-age=29030400, public");
 		}});
 		staticHandler.handle(request, response);
@@ -84,7 +88,9 @@ public class StaticHandlerImplTest {
 	public void returnsTheFileSystemsLastModifiedTimeForLocalFiles() {
 		File sampleFile = new File("src/main/resources/webroot/foundation.html");
 		Date now = new Date();
-		sampleFile.setLastModified(now.getTime());
+		if (!sampleFile.setLastModified(now.getTime())) {
+			throw new RuntimeException("This test can't set the file modified time so can't test that this works");
+		}
 		assertThat(staticHandler.dateCreated("/foundation.html"), is(equalTo(now)));
 	}
 
@@ -94,14 +100,50 @@ public class StaticHandlerImplTest {
 			allowing(request).getPath(); will(returnValue(path));
 			allowing(path).getPath(); will(onConsecutiveCalls(returnValue("/robots.txt"), returnValue("/favicon.ico")));
 			allowing(response).getOutputStream(); will(onConsecutiveCalls(returnValue(outputStream), returnValue(outputStream2)));
+			allowing(request).getValue("If-None-Match"); will(returnValue(""));
 
 			exactly(2).of(response).setValue(with("Content-Type"), with(any(String.class)));
 			exactly(2).of(response).setDate(with("Date"), with(any(long.class)));
 			exactly(2).of(response).setDate(with("Last-Modified"), with(any(long.class)));
+			exactly(2).of(response).setValue(with("ETag"), with(any(String.class)));
 			exactly(2).of(response).setValue("Cache-Control", "max-age=604800, public");
 		}});
 		staticHandler.handle(request, response);
 		staticHandler.handle(request, response);
+	}
+
+	@Test
+	public void returns304NotModifiedWhenETagHasNotChanged() throws Exception {
+		File webRoot = new File("target/testArea/" + UUID.randomUUID());
+		StaticHandlerImpl staticHandler = new StaticHandlerImpl(webRoot);
+		final File someFile = new File(webRoot, "blah.json");
+		FileUtils.writeStringToFile(someFile, "Version 1");
+
+		// If-None-Match
+		context.checking(new Expectations() {{
+			allowing(request).getPath(); will(returnValue(path));
+			allowing(path).getPath(); will(returnValue("/blah.json"));
+			allowing(response).getOutputStream(); will(returnValue(outputStream));
+			oneOf(request).getValue("If-None-Match"); will(returnValue(String.valueOf(someFile.lastModified())));
+
+			oneOf(response).setCode(304);
+			oneOf(response).setDescription("304 Not Modified");
+		}});
+		staticHandler.handle(request, response);
+
+		assertThat(responseBytes.toByteArray(), is(equalTo(new byte[0])));
+
+
+		// need to assert that outputStream.close() was called, but there is no
+		// real easy way to do it, so...
+		try {
+			outputStream.write(1);
+			Assert.fail("outputStream is not closed probably");
+		} catch (IllegalStateException e) {
+		} catch (Exception ex) {
+			Assert.fail("Unexpected error: " + ex);
+		}
+
 	}
 
 }
